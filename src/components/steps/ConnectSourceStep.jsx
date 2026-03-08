@@ -255,7 +255,7 @@ function DirectUploadPanel({ user }) {
   );
 }
 
-export default function ConnectSourceStep() {
+export default function ConnectSourceStep({ onSkipToStep }) {
   const { user } = useAuth();
   const [selectedSource, setSelectedSource] = useState("s3");
   const [selectedAuth, setSelectedAuth] = useState(0);
@@ -305,6 +305,21 @@ export default function ConnectSourceStep() {
             <span style={{ color: "#555", fontSize: "12px", marginLeft: "auto" }}>→ S3Bucket/ via RAG2 API (:8081)</span>
           </div>
           <DirectUploadPanel user={user} />
+
+          {/* Skip credentials + load → go straight to Configure RAG */}
+          {onSkipToStep && (
+            <div style={{ marginTop: "20px", padding: "14px 16px", background: "#0a1020", border: "1px solid #1a2a4a", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ color: "#7aabea", fontSize: "13px", fontWeight: 600, marginBottom: "2px" }}>Skip credentials &amp; document review?</div>
+                <div style={{ color: "#445", fontSize: "11px", color: "#556" }}>Since you're uploading directly, steps 2 &amp; 3 are optional — jump straight to configuring your RAG pipeline.</div>
+              </div>
+              <button
+                onClick={() => onSkipToStep(3)}
+                style={{ background: "#1a2a4a", border: "1px solid #3a6aba", borderRadius: "6px", padding: "10px 20px", color: "#7aabea", cursor: "pointer", fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap", marginLeft: "16px" }}>
+                Skip to Configure RAG →
+              </button>
+            </div>
+          )}
         </div>
       )}
 

@@ -9,15 +9,16 @@ import LoadDocsStep from "./components/steps/LoadDocsStep";
 import ConfigureRAGStep from "./components/steps/ConfigureRAGStep";
 import DeployQueryStep from "./components/steps/DeployQueryStep";
 
-export default function KnowledgeWorkflow() {
+export default function KnowledgeWorkflow({ onBack, initialStep = 0 }) {
   const { user, setUser } = useAuth();
-  const [stepIndex, setStepIndex] = useState(0);
+  const [stepIndex, setStepIndex] = useState(initialStep);
 
   if (!user) return <AuthGate />;
   const currentStep = STEPS[stepIndex].id;
 
   const goNext = () => setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
   const goPrev = () => setStepIndex((i) => Math.max(i - 1, 0));
+  const goToStep = (idx) => setStepIndex(Math.max(0, Math.min(idx, STEPS.length - 1)));
 
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === STEPS.length - 1;
@@ -33,15 +34,23 @@ export default function KnowledgeWorkflow() {
     >
       {/* Header */}
       <div style={{ borderBottom: "1px solid #222", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-            <span style={{ fontWeight: 700, fontSize: "22px", color: "#fff", letterSpacing: "-0.5px" }}>
-              Knowledge on Fusion
-            </span>
-            <span style={{ color: "#555", fontSize: "14px" }}>User Workflow</span>
-          </div>
-          <div style={{ color: "#444", fontSize: "12px", marginTop: "4px" }}>
-            Connect → Credential → Load → Configure → Query
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {onBack && (
+            <button onClick={onBack}
+              style={{ background: "transparent", border: "1px solid #2a2a2a", borderRadius: "6px", padding: "6px 12px", color: "#555", cursor: "pointer", fontSize: "12px" }}>
+              ← Hub
+            </button>
+          )}
+          <div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
+              <span style={{ fontWeight: 700, fontSize: "22px", color: "#fff", letterSpacing: "-0.5px" }}>
+                Knowledge on Fusion
+              </span>
+              <span style={{ color: "#555", fontSize: "14px" }}>New KB Workflow</span>
+            </div>
+            <div style={{ color: "#444", fontSize: "12px", marginTop: "4px" }}>
+              Connect → Credential → Load → Configure → Query
+            </div>
           </div>
         </div>
         {/* User badge + logout */}
@@ -84,7 +93,7 @@ export default function KnowledgeWorkflow() {
           }}
         />
 
-        {currentStep === "connect" && <ConnectSourceStep />}
+        {currentStep === "connect" && <ConnectSourceStep onSkipToStep={goToStep} />}
         {currentStep === "credentials" && <CredentialsStep />}
         {currentStep === "load" && <LoadDocsStep />}
         {currentStep === "configure" && <ConfigureRAGStep onDeploy={goNext} />}
