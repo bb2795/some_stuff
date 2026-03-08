@@ -255,9 +255,9 @@ function DirectUploadPanel({ user }) {
   );
 }
 
-export default function ConnectSourceStep({ onSkipToStep }) {
+export default function ConnectSourceStep({ onSkipToStep, initialSource = null }) {
   const { user } = useAuth();
-  const [selectedSource, setSelectedSource] = useState("s3");
+  const [selectedSource, setSelectedSource] = useState(initialSource || "s3");
   const [selectedAuth, setSelectedAuth] = useState(0);
 
   const active = sources.find((s) => s.id === selectedSource);

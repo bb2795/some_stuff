@@ -9,7 +9,7 @@ import LoadDocsStep from "./components/steps/LoadDocsStep";
 import ConfigureRAGStep from "./components/steps/ConfigureRAGStep";
 import DeployQueryStep from "./components/steps/DeployQueryStep";
 
-export default function KnowledgeWorkflow({ onBack, initialStep = 0 }) {
+export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSource = null }) {
   const { user, setUser } = useAuth();
   const [stepIndex, setStepIndex] = useState(initialStep);
 
@@ -93,7 +93,7 @@ export default function KnowledgeWorkflow({ onBack, initialStep = 0 }) {
           }}
         />
 
-        {currentStep === "connect" && <ConnectSourceStep onSkipToStep={goToStep} />}
+        {currentStep === "connect" && <ConnectSourceStep onSkipToStep={goToStep} initialSource={initialSource} />}
         {currentStep === "credentials" && <CredentialsStep />}
         {currentStep === "load" && <LoadDocsStep />}
         {currentStep === "configure" && <ConfigureRAGStep onDeploy={goNext} />}

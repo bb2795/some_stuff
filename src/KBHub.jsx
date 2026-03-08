@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 
-// ─── Static dataset catalog (mirrors the screenshot) ──────────────────────────
+// ─── Static dataset catalog ────────────────────────────────────────────────────
 const CATALOG = [
   {
     type: "S3", badge: "S3", badgeColor: "#ba8a3a",
@@ -95,17 +95,6 @@ const CATALOG = [
   },
 ];
 
-const TABS = ["S3 Datasets", "Source Datasets", "Data Products"];
-const TAB_COUNTS = [10, 10, 8];
-
-const NAV_ITEMS = [
-  { id: "hub", label: "Hub", sub: "Browse & discover" },
-  { id: "agents", label: "Agents", sub: null },
-  { id: "knowledge", label: "Knowledge", sub: null },
-  { id: "promptlab", label: "Prompt Lab", sub: null },
-  { id: "templates", label: "Templates", sub: null },
-];
-
 // ─── Dataset card ──────────────────────────────────────────────────────────────
 function DatasetCard({ item, onMakeKB, onQuery }) {
   const isKB = item.type === "KB";
@@ -130,7 +119,6 @@ function DatasetCard({ item, onMakeKB, onQuery }) {
           <span style={{ color: "#fff", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>{item.name}</span>
         </div>
 
-        {/* Tags */}
         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "8px" }}>
           {item.tags.map((t) => (
             <span key={t.label} style={{
@@ -140,7 +128,6 @@ function DatasetCard({ item, onMakeKB, onQuery }) {
           ))}
         </div>
 
-        {/* Path */}
         <div style={{
           background: "#080808", border: "1px solid #1a1a1a", borderRadius: "4px",
           padding: "5px 8px", fontFamily: "'IBM Plex Mono', monospace",
@@ -148,14 +135,13 @@ function DatasetCard({ item, onMakeKB, onQuery }) {
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>{item.path}</div>
 
-        {/* Description */}
         <p style={{ color: "#888", fontSize: "11px", lineHeight: "1.5", margin: 0,
           display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>{item.desc}</p>
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a" }}>
         {[["RECORDS", item.records], ["UPDATED", item.updated], ["REGION", item.region], ["CLASSIFICATION", item.classification]].map(([k, v]) => (
           <div key={k} style={{ padding: "8px 12px", borderRight: k === "RECORDS" || k === "REGION" ? "1px solid #1a1a1a" : "none" }}>
             <div style={{ color: "#444", fontSize: "9px", fontWeight: 700, marginBottom: "2px" }}>{k}</div>
@@ -210,7 +196,7 @@ function DatasetCard({ item, onMakeKB, onQuery }) {
   );
 }
 
-// ─── Inline query panel (for already-created KBs) ─────────────────────────────
+// ─── Inline query panel ────────────────────────────────────────────────────────
 function QueryPanel({ item, onClose }) {
   const { user } = useAuth();
   const [question, setQuestion] = useState("");
@@ -225,16 +211,11 @@ function QueryPanel({ item, onClose }) {
     try {
       const res = await fetch("/v1/qa", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": user.userid,
-          authorization: `Bearer ${user.token}`,
-        },
+        headers: { "Content-Type": "application/json", "x-user-id": user.userid, authorization: `Bearer ${user.token}` },
         body: JSON.stringify({ kb_name: item.name, question, provider }),
       });
       if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-      const data = await res.json();
-      setAnswer(data);
+      setAnswer(await res.json());
     } catch (err) {
       setAnswer({ answer: `Error: ${err.message}`, model: "—" });
     } finally {
@@ -243,14 +224,8 @@ function QueryPanel({ item, onClose }) {
   };
 
   return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000,
-      display: "flex", alignItems: "center", justifyContent: "center",
-    }} onClick={onClose}>
-      <div style={{
-        background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: "12px",
-        width: "640px", maxWidth: "90vw", padding: "28px",
-      }} onClick={(e) => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
+      <div style={{ background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: "12px", width: "640px", maxWidth: "90vw", padding: "28px" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
@@ -263,40 +238,20 @@ function QueryPanel({ item, onClose }) {
           <button onClick={onClose} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: "18px", padding: "2px 6px" }}>✕</button>
         </div>
 
-        {/* Provider toggle */}
         <div style={{ display: "flex", gap: "6px", marginBottom: "14px" }}>
           {[{ id: "xai", label: "Grok (xAI)" }, { id: "anthropic", label: "Claude" }].map((p) => (
             <button key={p.id} onClick={() => setProvider(p.id)}
-              style={{
-                background: provider === p.id ? "#1a2a3a" : "#0d0d0d",
-                border: `1px solid ${provider === p.id ? "#3a7aba" : "#2a2a2a"}`,
-                borderRadius: "6px", padding: "6px 14px", color: provider === p.id ? "#7aabea" : "#555",
-                cursor: "pointer", fontSize: "12px", fontWeight: 600,
-              }}>
+              style={{ background: provider === p.id ? "#1a2a3a" : "#0d0d0d", border: `1px solid ${provider === p.id ? "#3a7aba" : "#2a2a2a"}`, borderRadius: "6px", padding: "6px 14px", color: provider === p.id ? "#7aabea" : "#555", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>
               {p.label}
             </button>
           ))}
         </div>
 
-        <textarea
-          value={question} onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask a question about this knowledge base..."
-          rows={3}
-          style={{
-            width: "100%", background: "#080808", border: "1px solid #333", borderRadius: "6px",
-            padding: "10px 12px", color: "#ddd", fontSize: "13px", resize: "vertical",
-            fontFamily: "'IBM Plex Sans', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: "10px",
-          }}
-        />
+        <textarea value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask a question about this knowledge base..." rows={3}
+          style={{ width: "100%", background: "#080808", border: "1px solid #333", borderRadius: "6px", padding: "10px 12px", color: "#ddd", fontSize: "13px", resize: "vertical", fontFamily: "'IBM Plex Sans', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: "10px" }} />
 
         <button onClick={handleAsk} disabled={loading || !question.trim()}
-          style={{
-            width: "100%", background: loading ? "#111" : "#1a2a3a",
-            border: `1px solid ${loading ? "#333" : "#3a7aba"}`,
-            borderRadius: "6px", padding: "10px", color: loading ? "#555" : "#fff",
-            cursor: loading || !question.trim() ? "not-allowed" : "pointer",
-            fontWeight: 700, fontSize: "13px", marginBottom: "14px",
-          }}>
+          style={{ width: "100%", background: loading ? "#111" : "#1a2a3a", border: `1px solid ${loading ? "#333" : "#3a7aba"}`, borderRadius: "6px", padding: "10px", color: loading ? "#555" : "#fff", cursor: loading || !question.trim() ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "13px", marginBottom: "14px" }}>
           {loading ? "Querying…" : "Ask"}
         </button>
 
@@ -315,17 +270,12 @@ function QueryPanel({ item, onClose }) {
 }
 
 // ─── Main KBHub component ──────────────────────────────────────────────────────
-export default function KBHub({ onCreateNew }) {
+export default function KBHub({ onCreateNew, onUploadDocs }) {
   const { user, setUser } = useAuth();
-  const [activeTab, setActiveTab] = useState(0);
-  const [activeNav, setActiveNav] = useState("knowledge");
   const [queryTarget, setQueryTarget] = useState(null);
   const [search, setSearch] = useState("");
 
-  if (!user) {
-    // Simple login prompt — AuthGate handles the real UI in App.jsx
-    return null;
-  }
+  if (!user) return null;
 
   const filtered = CATALOG.filter(
     (d) =>
@@ -338,47 +288,22 @@ export default function KBHub({ onCreateNew }) {
     <div style={{ display: "flex", height: "100vh", background: "#0a0a0a", color: "#e0e0e0", fontFamily: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif", overflow: "hidden" }}>
 
       {/* ── Left Sidebar ── */}
-      <div style={{ width: "200px", flexShrink: 0, background: "#080808", borderRight: "1px solid #1a1a1a", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        {/* Logo area */}
+      <div style={{ width: "200px", flexShrink: 0, background: "#080808", borderRight: "1px solid #1a1a1a", display: "flex", flexDirection: "column" }}>
+        {/* Logo */}
         <div style={{ padding: "20px 18px 14px", borderBottom: "1px solid #1a1a1a" }}>
           <div style={{ fontWeight: 800, fontSize: "15px", color: "#fff", letterSpacing: "-0.5px" }}>Knowledge</div>
           <div style={{ color: "#444", fontSize: "11px" }}>on Fusion</div>
         </div>
 
-        {/* Nav items */}
+        {/* Single nav item */}
         <nav style={{ flex: 1, padding: "10px 0" }}>
-          {NAV_ITEMS.map((item) => (
-            <button key={item.id} onClick={() => setActiveNav(item.id)}
-              style={{
-                width: "100%", textAlign: "left", background: activeNav === item.id ? "#1a2a3a" : "transparent",
-                border: "none", borderLeft: `2px solid ${activeNav === item.id ? "#3a7aba" : "transparent"}`,
-                padding: "9px 18px", cursor: "pointer", color: activeNav === item.id ? "#fff" : "#666",
-              }}>
-              <div style={{ fontSize: "13px", fontWeight: activeNav === item.id ? 700 : 400 }}>{item.label}</div>
-              {item.sub && <div style={{ fontSize: "10px", color: activeNav === item.id ? "#5a8aaa" : "#444", marginTop: "1px" }}>{item.sub}</div>}
-            </button>
-          ))}
-
-          <div style={{ borderTop: "1px solid #1a1a1a", margin: "8px 0" }} />
-
-          {/* Builders section */}
-          <button style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", borderLeft: "2px solid transparent", padding: "9px 18px", cursor: "pointer", color: "#666" }}>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#444", marginBottom: "2px" }}>BUILDERS</div>
-            <div style={{ fontSize: "12px" }}>Create &amp; design</div>
-          </button>
-
-          <div style={{ borderTop: "1px solid #1a1a1a", margin: "8px 0" }} />
-
-          {/* Deploy section */}
-          <button style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", borderLeft: "2px solid transparent", padding: "9px 18px", cursor: "pointer", color: "#666" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div>
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "#444", marginBottom: "2px" }}>DEPLOY</div>
-                <div style={{ fontSize: "12px" }}>Monitor &amp; manage</div>
-              </div>
-              <span style={{ background: "#1a3a2a", border: "1px solid #2a6a4a", color: "#3a9a5a", borderRadius: "10px", padding: "1px 6px", fontSize: "10px", fontWeight: 700, marginLeft: "auto" }}>2</span>
-            </div>
-          </button>
+          <div style={{
+            width: "100%", textAlign: "left", background: "#1a2a3a",
+            borderLeft: "2px solid #3a7aba",
+            padding: "9px 18px", color: "#fff",
+          }}>
+            <div style={{ fontSize: "13px", fontWeight: 700 }}>Knowledge</div>
+          </div>
         </nav>
 
         {/* Bottom: user + stats */}
@@ -412,8 +337,8 @@ export default function KBHub({ onCreateNew }) {
       {/* ── Main content ── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Top bar */}
-        <div style={{ padding: "18px 28px 0", borderBottom: "1px solid #1a1a1a", flexShrink: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+        <div style={{ padding: "18px 28px 14px", borderBottom: "1px solid #1a1a1a", flexShrink: 0 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>Knowledge</h1>
               <div style={{ color: "#555", fontSize: "13px", marginTop: "2px" }}>S3 datasets, source datasets &amp; data products</div>
@@ -421,65 +346,23 @@ export default function KBHub({ onCreateNew }) {
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               <input
                 value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search S3 datasets..."
-                style={{
-                  background: "#111", border: "1px solid #2a2a2a", borderRadius: "6px",
-                  padding: "8px 14px", color: "#ccc", fontSize: "13px", outline: "none", width: "220px",
-                  fontFamily: "'IBM Plex Sans', sans-serif",
-                }}
+                placeholder="Search datasets..."
+                style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: "6px", padding: "8px 14px", color: "#ccc", fontSize: "13px", outline: "none", width: "220px", fontFamily: "'IBM Plex Sans', sans-serif" }}
               />
               <button onClick={onCreateNew}
-                style={{
-                  background: "#1a2a3a", border: "1px solid #3a7aba", borderRadius: "6px",
-                  padding: "8px 18px", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: "13px",
-                  whiteSpace: "nowrap",
-                }}>
+                style={{ background: "#1a2a3a", border: "1px solid #3a7aba", borderRadius: "6px", padding: "8px 18px", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap" }}>
                 + Create New KB
               </button>
             </div>
-          </div>
-
-          {/* Filter chips */}
-          <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
-            {["Classification: All", "Dataspace: All"].map((f) => (
-              <div key={f} style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: "4px", padding: "4px 10px", color: "#666", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
-                {f} <span style={{ color: "#444" }}>›</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Tabs */}
-          <div style={{ display: "flex", gap: "0" }}>
-            {TABS.map((tab, i) => (
-              <button key={tab} onClick={() => setActiveTab(i)}
-                style={{
-                  background: "transparent", border: "none", borderBottom: `2px solid ${activeTab === i ? "#3a7aba" : "transparent"}`,
-                  padding: "8px 18px", color: activeTab === i ? "#fff" : "#555",
-                  cursor: "pointer", fontSize: "13px", fontWeight: activeTab === i ? 700 : 400,
-                  display: "flex", alignItems: "center", gap: "6px",
-                }}>
-                {tab}
-                <span style={{
-                  background: activeTab === i ? "#1a2a3a" : "#111",
-                  border: `1px solid ${activeTab === i ? "#3a7aba" : "#2a2a2a"}`,
-                  color: activeTab === i ? "#7aabea" : "#555",
-                  borderRadius: "10px", padding: "1px 6px", fontSize: "10px", fontWeight: 700,
-                }}>{TAB_COUNTS[i]}</span>
-              </button>
-            ))}
           </div>
         </div>
 
         {/* Scrollable content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "20px 28px" }}>
-          {/* Upload strip */}
+          {/* Upload strip — goes to Direct Upload in step 1 */}
           <div
-            onClick={onCreateNew}
-            style={{
-              border: "1px dashed #2a2a2a", borderRadius: "8px", padding: "14px 20px",
-              marginBottom: "20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px",
-              background: "#080808", transition: "border-color 0.15s",
-            }}
+            onClick={onUploadDocs}
+            style={{ border: "1px dashed #2a2a2a", borderRadius: "8px", padding: "14px 20px", marginBottom: "20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", background: "#080808", transition: "border-color 0.15s" }}
             onMouseEnter={(e) => e.currentTarget.style.borderColor = "#3a7aba"}
             onMouseLeave={(e) => e.currentTarget.style.borderColor = "#2a2a2a"}
           >
@@ -498,18 +381,12 @@ export default function KBHub({ onCreateNew }) {
           {/* Card grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
             {filtered.map((item) => (
-              <DatasetCard
-                key={item.name}
-                item={item}
-                onMakeKB={onCreateNew}
-                onQuery={() => setQueryTarget(item)}
-              />
+              <DatasetCard key={item.name} item={item} onMakeKB={onCreateNew} onQuery={() => setQueryTarget(item)} />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Query panel modal */}
       {queryTarget && <QueryPanel item={queryTarget} onClose={() => setQueryTarget(null)} />}
     </div>
   );

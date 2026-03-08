@@ -8,21 +8,26 @@ export default function App() {
   const { user } = useAuth();
   const [view, setView] = useState("hub"); // "hub" | "workflow"
   const [workflowInitialStep, setWorkflowInitialStep] = useState(0);
+  const [workflowInitialSource, setWorkflowInitialSource] = useState(null);
 
   if (!user) return <AuthGate />;
+
+  const goToHub = () => { setView("hub"); setWorkflowInitialStep(0); setWorkflowInitialSource(null); };
 
   if (view === "workflow") {
     return (
       <KnowledgeWorkflow
         initialStep={workflowInitialStep}
-        onBack={() => { setView("hub"); setWorkflowInitialStep(0); }}
+        initialSource={workflowInitialSource}
+        onBack={goToHub}
       />
     );
   }
 
   return (
     <KBHub
-      onCreateNew={() => { setWorkflowInitialStep(0); setView("workflow"); }}
+      onCreateNew={() => { setWorkflowInitialStep(0); setWorkflowInitialSource(null); setView("workflow"); }}
+      onUploadDocs={() => { setWorkflowInitialStep(0); setWorkflowInitialSource("upload"); setView("workflow"); }}
     />
   );
 }
