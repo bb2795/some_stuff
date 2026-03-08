@@ -1,0 +1,317 @@
+import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { listFiles, queryFile } from "../../services/ragApi";
+
+// ─── Deployment progress animation ───
+function DeployingScreen({ onDone }) {
+  const [phase, setPhase] = useState(0);
+  const steps = [
+    "Provisioning vector index (OpenSearch HNSW)…",
+    "Embedding chunks via text-embedding-3-small…",
+    "Indexing structured rows…",
+    "Configuring hybrid retrieval (BM25 + kNN + Cohere rerank)…",
+    "Running smoke-test query…",
+    "Knowledge base live ✓",
+  ];
+  useEffect(() => {
+    if (phase >= steps.length - 1) { setTimeout(onDone, 800); return; }
+    const t = setTimeout(() => setPhase((p) => p + 1), 600);
+    return () => clearTimeout(t);
+  }, [phase]);
+  return (
+    <div style={{ background: "#0d0d0d", border: "1px solid #222", borderRadius: "10px", padding: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+        <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: phase < steps.length - 1 ? "#ba8a3a" : "#3a9a5a", boxShadow: `0 0 10px ${phase < steps.length - 1 ? "#ba8a3a60" : "#3a9a5a60"}` }} />
+        <span style={{ color: "#ddd", fontWeight: 700, fontSize: "16px" }}>
+          {phase < steps.length - 1 ? "Deploying…" : "Deployment complete"}
+        </span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {steps.map((s, i) => (
+          <div key={s} style={{ display: "flex", alignItems: "center", gap: "10px", opacity: i > phase ? 0.25 : 1, transition: "opacity 0.3s" }}>
+            {i < phase && <span style={{ color: "#3a9a5a", flexShrink: 0 }}>✓</span>}
+            {i === phase && phase < steps.length - 1 && <span style={{ color: "#ba8a3a", flexShrink: 0, display: "inline-block", animation: "spin 1s linear infinite" }}>⟳</span>}
+            {i === phase && phase === steps.length - 1 && <span style={{ color: "#3a9a5a", flexShrink: 0 }}>✓</span>}
+            {i > phase && <span style={{ color: "#444", flexShrink: 0 }}>○</span>}
+            <span style={{ color: i < phase ? "#5a8a5a" : i === phase ? "#ddd" : "#444", fontSize: "13px" }}>{s}</span>
+          </div>
+        ))}
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+// ─── KB card in hub listing ───
+function KBCard({ onClick }) {
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <div style={{ color: "#555", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", marginBottom: "10px", letterSpacing: "0.5px" }}>
+        Knowledge Hub — My Knowledge Bases
+      </div>
+      <div onClick={onClick}
+        style={{ background: "#0a1a15", border: "2px solid #1a4a2a", borderRadius: "10px", padding: "18px 20px", cursor: "pointer", transition: "all 0.15s", marginBottom: "8px", position: "relative" }}
+        onMouseEnter={(e) => { e.currentTarget.style.border = "2px solid #3a9a5a"; e.currentTarget.style.background = "#0d2a1a"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.border = "2px solid #1a4a2a"; e.currentTarget.style.background = "#0a1a15"; }}>
+        <div style={{ position: "absolute", top: "14px", right: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#3a9a5a", boxShadow: "0 0 8px #3a9a5a80" }} />
+          <span style={{ color: "#3a9a5a", fontSize: "11px", fontWeight: 700 }}>LIVE</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+          <div style={{ background: "#1a4a2a", border: "1px solid #2a6a3a", borderRadius: "6px", padding: "6px 10px", fontSize: "18px" }}>🗂</div>
+          <div>
+            <div style={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>My Knowledge Base</div>
+            <div style={{ color: "#5a8a5a", fontSize: "12px" }}>Hybrid retrieval · Cohere rerank · Real Q&A via Grok / Claude</div>
+          </div>
+        </div>
+        <div style={{ color: "#3a7aba", fontSize: "12px", fontWeight: 600 }}>Click to open → Query your documents with real LLM answers</div>
+      </div>
+      {[
+        { name: "Equities Research — Global Macro", id: "eq-macro", status: "healthy" },
+        { name: "Trade Operations Playbooks", id: "trade-ops", status: "syncing" },
+      ].map((kb) => (
+        <div key={kb.id} style={{ background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: "8px", padding: "12px 18px", marginBottom: "6px", display: "flex", justifyContent: "space-between", alignItems: "center", opacity: 0.45 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "16px" }}>🗂</span>
+            <div>
+              <div style={{ color: "#aaa", fontWeight: 600, fontSize: "13px" }}>{kb.name}</div>
+              <div style={{ color: "#555", fontSize: "11px" }}>{kb.id}</div>
+            </div>
+          </div>
+          <span style={{ color: kb.status === "syncing" ? "#ba8a3a" : "#3a9a5a", fontWeight: 700, fontSize: "10px" }}>
+            {kb.status === "syncing" ? "⟳ SYNCING" : "● HEALTHY"}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Real Q&A console (calls RAG2 /v1/qa) ───
+function QueryConsole({ user, onClose }) {
+  const [files, setFiles] = useState([]);
+  const [filesLoading, setFilesLoading] = useState(true);
+  const [filesError, setFilesError] = useState(null);
+  const [selectedFileId, setSelectedFileId] = useState("");
+  const [question, setQuestion] = useState("What is this document about?");
+  const [provider, setProvider] = useState("xai");
+  const [qaState, setQaState] = useState("idle"); // idle | loading | done | error
+  const [answer, setAnswer] = useState(null);
+  const [qaError, setQaError] = useState(null);
+  const [activeTab, setActiveTab] = useState("query");
+
+  // Fetch only the current user's files (entitlement enforced in listFiles)
+  useEffect(() => {
+    if (!user) return;
+    listFiles(user)
+      .then((f) => {
+        setFiles(f);
+        setFilesLoading(false);
+        if (f.length > 0) setSelectedFileId(String(f[0].file_id ?? f[0].id));
+      })
+      .catch((err) => { setFilesError(err.message); setFilesLoading(false); });
+  }, [user]);
+
+  const handleQuery = async () => {
+    if (!selectedFileId || !question.trim()) return;
+    setQaState("loading");
+    setAnswer(null);
+    setQaError(null);
+    try {
+      const res = await queryFile(user, Number(selectedFileId), question.trim(), provider);
+      setAnswer(res);
+      setQaState("done");
+    } catch (err) {
+      setQaError(err.message);
+      setQaState("error");
+    }
+  };
+
+  return (
+    <div style={{ background: "#0d0d0d", border: "2px solid #1a3a5a", borderRadius: "10px", overflow: "hidden", marginBottom: "20px" }}>
+      {/* Header */}
+      <div style={{ background: "#111", padding: "12px 16px", borderBottom: "1px solid #222", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#3a9a5a", boxShadow: "0 0 6px #3a9a5a60" }} />
+          <span style={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>My Knowledge Base</span>
+          <span style={{ color: "#555", fontSize: "12px" }}>Live · {user?.userid}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          {["query", "files"].map((t) => (
+            <button key={t} onClick={() => setActiveTab(t)}
+              style={{ background: activeTab === t ? "#1a2a3a" : "transparent", border: `1px solid ${activeTab === t ? "#3a7aba" : "transparent"}`, borderRadius: "4px", padding: "4px 12px", color: activeTab === t ? "#3a7aba" : "#666", fontSize: "12px", fontWeight: 600, cursor: "pointer", textTransform: "capitalize" }}>
+              {t}
+            </button>
+          ))}
+          <button onClick={onClose} style={{ background: "transparent", border: "1px solid #333", borderRadius: "4px", padding: "4px 10px", color: "#666", fontSize: "11px", cursor: "pointer", marginLeft: "6px" }}>
+            ✕ Close
+          </button>
+        </div>
+      </div>
+
+      {/* ── Query tab ── */}
+      {activeTab === "query" && (
+        <div style={{ padding: "16px" }}>
+
+          {/* Entitlement banner */}
+          <div style={{ background: "#0a1520", border: "1px solid #1a3a5a", borderRadius: "6px", padding: "8px 12px", marginBottom: "14px", display: "flex", gap: "8px", alignItems: "center" }}>
+            <span style={{ color: "#3a7aba" }}>🔒</span>
+            <span style={{ color: "#6a8aaa", fontSize: "11px" }}>
+              Showing only <strong style={{ color: "#3a7aba" }}>{user?.userid}</strong>'s documents · Cross-user access blocked
+            </span>
+          </div>
+
+          {/* File selector */}
+          <div style={{ marginBottom: "12px" }}>
+            <label style={{ color: "#888", fontSize: "11px", fontWeight: 600, display: "block", marginBottom: "6px" }}>DOCUMENT</label>
+            {filesLoading && <div style={{ color: "#555", fontSize: "12px" }}>Loading your files…</div>}
+            {filesError && (
+              <div style={{ background: "#1a0808", border: "1px solid #3a1a1a", borderRadius: "6px", padding: "8px 12px" }}>
+                <div style={{ color: "#ba4a4a", fontSize: "12px" }}>Could not load files: {filesError}</div>
+                <div style={{ color: "#555", fontSize: "11px", marginTop: "4px" }}>Is the RAG service running on :8081? Run <span style={{ fontFamily: "monospace" }}>python deploy.py</span>.</div>
+              </div>
+            )}
+            {!filesLoading && !filesError && files.length === 0 && (
+              <div style={{ background: "#111", border: "1px solid #333", borderRadius: "6px", padding: "10px 14px", color: "#555", fontSize: "12px" }}>
+                No documents found for <strong style={{ color: "#777" }}>{user?.userid}</strong>. Upload files in Step 1 (Direct Upload).
+              </div>
+            )}
+            {!filesLoading && files.length > 0 && (
+              <select value={selectedFileId} onChange={(e) => setSelectedFileId(e.target.value)}
+                style={{ width: "100%", background: "#111", border: "1px solid #333", borderRadius: "6px", padding: "9px 12px", color: "#ddd", fontSize: "13px", outline: "none", cursor: "pointer" }}>
+                {files.map((f) => {
+                  const id = f.file_id ?? f.id;
+                  const name = f.original_name ?? f.filename ?? `File ${id}`;
+                  return <option key={id} value={String(id)}>{name} (id: {id})</option>;
+                })}
+              </select>
+            )}
+          </div>
+
+          {/* Question */}
+          <div style={{ marginBottom: "12px" }}>
+            <label style={{ color: "#888", fontSize: "11px", fontWeight: 600, display: "block", marginBottom: "6px" }}>QUESTION</label>
+            <textarea value={question} onChange={(e) => setQuestion(e.target.value)} rows={2}
+              style={{ width: "100%", background: "#111", border: "1px solid #333", borderRadius: "6px", padding: "10px 14px", color: "#ddd", fontSize: "14px", outline: "none", resize: "vertical", fontFamily: "'IBM Plex Sans', sans-serif", boxSizing: "border-box" }} />
+          </div>
+
+          {/* Provider + submit */}
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "16px" }}>
+            <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
+              {[{ id: "xai", label: "Grok (xAI)" }, { id: "anthropic", label: "Claude" }].map((p) => (
+                <button key={p.id} onClick={() => setProvider(p.id)}
+                  style={{ background: provider === p.id ? "#1a2a3a" : "#111", border: `1px solid ${provider === p.id ? "#3a7aba" : "#333"}`, borderRadius: "4px", padding: "6px 14px", color: provider === p.id ? "#3a7aba" : "#666", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <button onClick={handleQuery}
+              disabled={qaState === "loading" || !selectedFileId || !question.trim()}
+              style={{ flex: 1, background: qaState === "loading" ? "#111" : "#1a4a2a", border: `1px solid ${qaState === "loading" ? "#333" : "#3a9a5a"}`, borderRadius: "6px", padding: "9px 20px", color: "#fff", cursor: qaState === "loading" ? "not-allowed" : "pointer", fontWeight: 600, fontSize: "13px" }}>
+              {qaState === "loading" ? "Querying…" : "Ask"}
+            </button>
+          </div>
+
+          {/* Loading */}
+          {qaState === "loading" && (
+            <div style={{ padding: "20px", textAlign: "center", color: "#555", fontSize: "13px" }}>
+              Sending to <strong style={{ color: provider === "xai" ? "#ba8a3a" : "#5a6aba" }}>{provider === "xai" ? "Grok (xAI)" : "Claude"}</strong> via RAG2 API<span style={{ color: "#3a7aba" }}>…</span>
+            </div>
+          )}
+
+          {/* Error */}
+          {qaState === "error" && (
+            <div style={{ background: "#1a0808", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "14px" }}>
+              <div style={{ color: "#ba4a4a", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>Query failed</div>
+              <div style={{ color: "#7a4a4a", fontSize: "12px" }}>{qaError}</div>
+            </div>
+          )}
+
+          {/* Real answer */}
+          {qaState === "done" && answer && (
+            <div style={{ background: "#0a1520", border: "1px solid #1a3a5a", borderRadius: "8px", padding: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                <div style={{ color: "#3a7aba", fontSize: "11px", fontWeight: 700 }}>ANSWER</div>
+                <span style={{ background: "#0d1520", border: "1px solid #1a3a5a", color: "#5a7aaa", fontSize: "10px", fontFamily: "'IBM Plex Mono', monospace", padding: "2px 8px", borderRadius: "3px" }}>
+                  {answer.model}
+                </span>
+              </div>
+              <div style={{ color: "#c0d0e0", fontSize: "14px", lineHeight: "1.75", whiteSpace: "pre-wrap" }}>
+                {answer.answer}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Files tab ── */}
+      {activeTab === "files" && (
+        <div style={{ padding: "16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <div style={{ color: "#555", fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>
+              {user?.userid}'s Documents
+            </div>
+            <div style={{ background: "#0a1520", border: "1px solid #1a3a5a", borderRadius: "4px", padding: "3px 10px", color: "#5a7aaa", fontSize: "10px" }}>
+              🔒 Other users' files are hidden
+            </div>
+          </div>
+          {filesLoading && <div style={{ color: "#555", fontSize: "12px", padding: "12px 0" }}>Loading…</div>}
+          {!filesLoading && files.length === 0 && <div style={{ color: "#555", fontSize: "12px" }}>No files found. Upload via Step 1 → Direct Upload.</div>}
+          {!filesLoading && files.map((f) => {
+            const id = f.file_id ?? f.id;
+            const name = f.original_name ?? f.filename ?? `File ${id}`;
+            const size = f.size ?? f.file_size ?? 0;
+            return (
+              <div key={id} style={{ display: "grid", gridTemplateColumns: "2fr 80px 80px", padding: "8px 10px", borderBottom: "1px solid #111", alignItems: "center" }}>
+                <span style={{ color: "#ccc", fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
+                <span style={{ color: "#6a9aba", fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace" }}>id: {id}</span>
+                <span style={{ color: "#555", fontSize: "11px", textAlign: "right" }}>{size ? `${(size / 1024).toFixed(0)} KB` : "—"}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const accessMethods = [
+  { method: "REST API", code: "POST /v1/qa", desc: "Real Q&A via RAG2 pipeline (:8081)" },
+  { method: "Agent Tool", code: 'tools: [{ type: "knowledge", kb_id: "..." }]', desc: "Agents query KBs as tools" },
+  { method: "Fusion Console", code: "Hub → Knowledge → Query", desc: "Interactive query and exploration" },
+];
+
+// ─── Main export ───
+export default function DeployQueryStep() {
+  const { user } = useAuth();
+  const [phase, setPhase] = useState("deploying");
+
+  return (
+    <div>
+      <p style={{ color: "#999", fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0" }}>
+        {phase === "deploying"
+          ? "Fusion is building your knowledge base."
+          : "Your knowledge base is live. Click it to query your documents — answers powered by Grok or Claude via the RAG2 API."}
+      </p>
+
+      {phase === "deploying" && <DeployingScreen onDone={() => setPhase("hub")} />}
+
+      {phase !== "deploying" && (
+        <>
+          <KBCard onClick={() => setPhase("querying")} />
+          {phase === "querying" && <QueryConsole user={user} onClose={() => setPhase("hub")} />}
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
+            {accessMethods.map((m) => (
+              <div key={m.method} style={{ background: "#0d0d0d", border: "1px solid #222", borderRadius: "6px", padding: "12px" }}>
+                <div style={{ color: "#3a7aba", fontWeight: 700, fontSize: "12px", marginBottom: "4px" }}>{m.method}</div>
+                <div style={{ color: "#6a9aba", fontSize: "10px", fontFamily: "'IBM Plex Mono', monospace", marginBottom: "6px", background: "#080808", padding: "4px 6px", borderRadius: "3px" }}>{m.code}</div>
+                <div style={{ color: "#777", fontSize: "11px" }}>{m.desc}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/bitun/Documents/RAG2/202603_BITUN_DATA_ACCESS_PROJECT/**)",
+      "Read(//c/Users/bitun/.claude/projects/c--Users-bitun-Documents-KB-creation/memory/**)"
+    ]
+  }
+}
