@@ -1,114 +1,44 @@
 import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 
-// ─── Static dataset catalog ────────────────────────────────────────────────────
+// ─── KB catalog — owner controls who can "Make Knowledgebase" ─────────────────
 const CATALOG = [
   {
-    type: "S3", badge: "S3", badgeColor: "#ba8a3a",
+    id: "ccb-risk",
+    badge: "S3", badgeColor: "#ba8a3a",
     name: "CCB Risk Exposures",
+    owner: "user1",
     tags: [{ label: "Store", color: "#555" }, { label: "CCB Risk", color: "#3a7aba" }],
     path: "s3://fusion-data/ccb-risk/ccb-risk-exposures/",
     desc: "Consolidated credit risk exposure data across all CCB portfolios including PD, LGD, and EAD metrics for regulatory and internal reporting.",
     records: "2.4M", updated: "2025-12-20", region: "Global", classification: "Store",
-    access: true, topics: ["Risk", "Credit", "Exposure"],
+    topics: ["Risk", "Credit", "Exposure"],
   },
   {
-    type: "KB", badge: "KB", badgeColor: "#3a7aba",
-    name: "CIB Client Master",
-    tags: [{ label: "Knowledgebase", color: "#3a7aba" }, { label: "CIB Client 360", color: "#555" }],
-    path: "s3://fusion-data/cib-client-360/cib-client-master/",
-    desc: "Golden source client reference data for CIB including legal entity hierarchy, KYC records, onboarding status, and relationship mappings.",
-    records: "850K", updated: "2025-12-18", region: "Global", classification: "Knowledgebase",
-    access: true, topics: ["Client", "KYC", "Reference"],
-  },
-  {
-    type: "S3", badge: "S3", badgeColor: "#ba8a3a",
-    name: "Consumer Loan Book",
-    tags: [{ label: "Store", color: "#555" }, { label: "Consumer Lending", color: "#8a5a3a" }],
-    path: "s3://fusion-data/consumer-lending/consumer-loan-book/",
-    desc: "Golden source consumer lending portfolio data including mortgage, auto, student, and personal loan positions with payment history.",
-    records: "12.8M", updated: "2025-12-22", region: "North America", classification: "Store",
-    access: false, topics: ["Lending", "Consumer", "Portfolio"],
-  },
-  {
-    type: "KB", badge: "KB", badgeColor: "#3a7aba",
-    name: "Regulatory Reports Knowledge Base",
-    tags: [{ label: "Knowledgebase", color: "#3a7aba" }, { label: "CCB Risk", color: "#3a7aba" }],
-    path: "s3://fusion-data/ccb-risk/regulatory-reports-knowledge-base/",
-    desc: "Comprehensive knowledge base of regulatory reporting requirements, filing templates, submission guidelines, and compliance guidelines documents.",
-    records: "15K", updated: "2025-11-30", region: "Global", classification: "Knowledgebase",
-    access: true, topics: ["Regulatory", "Compliance", "Templates"],
-  },
-  {
-    type: "S3", badge: "S3", badgeColor: "#ba8a3a",
-    name: "Treasury Positions",
-    tags: [{ label: "Store", color: "#555" }, { label: "Treasury Services", color: "#5a8a6a" }],
-    path: "s3://fusion-data/treasury-services/treasury-positions/",
-    desc: "Real-time treasury position data including cash balances, intraday funding, and intercompany flows.",
-    records: "340K", updated: "2025-12-21", region: "Global", classification: "Store",
-    access: true, topics: ["Treasury", "Cash", "Positions"],
-  },
-  {
-    type: "KB", badge: "KB", badgeColor: "#3a7aba",
-    name: "AML Typologies Knowledge Base",
-    tags: [{ label: "Knowledgebase", color: "#3a7aba" }, { label: "CIB Client 360", color: "#555" }],
-    path: "s3://fusion-data/cib-client-360/aml-typologies-knowledge-base/",
-    desc: "Curated knowledge base of anti-money laundering typologies, red flag indicators, case studies, and investigation guidelines documents.",
-    records: "8.2K", updated: "2025-12-10", region: "Global", classification: "Knowledgebase",
-    access: true, topics: ["AML", "Compliance", "Risk"],
-  },
-  {
-    type: "S3", badge: "S3", badgeColor: "#ba8a3a",
+    id: "equities",
+    badge: "S3", badgeColor: "#3a9a5a",
     name: "Equities Reference Data",
+    owner: "user2",
     tags: [{ label: "Store", color: "#555" }, { label: "Equities Desk", color: "#3a9a5a" }],
     path: "s3://fusion-data/equities/reference-data/",
     desc: "Static and slowly changing reference data for equity instruments including ISINs, exchange listings, sector classifications, and corporate actions.",
     records: "1.2M", updated: "2025-12-19", region: "Global", classification: "Store",
-    access: true, topics: ["Equities", "Reference", "Instruments"],
-  },
-  {
-    type: "KB", badge: "KB", badgeColor: "#3a7aba",
-    name: "Credit Policy Knowledge Base",
-    tags: [{ label: "Knowledgebase", color: "#3a7aba" }, { label: "CCB Risk", color: "#3a7aba" }],
-    path: "s3://fusion-data/ccb-risk/credit-policy-knowledge-base/",
-    desc: "Internal credit policy documents, underwriting standards, and decision frameworks for consumer and commercial credit products.",
-    records: "4.1K", updated: "2025-12-05", region: "Global", classification: "Knowledgebase",
-    access: true, topics: ["Credit", "Policy", "Underwriting"],
-  },
-  {
-    type: "S3", badge: "S3", badgeColor: "#ba8a3a",
-    name: "Market Risk Scenarios",
-    tags: [{ label: "Store", color: "#555" }, { label: "Risk Management", color: "#8a3a5a" }],
-    path: "s3://fusion-data/risk/market-risk-scenarios/",
-    desc: "Historical and hypothetical stress test scenarios for market risk including VaR models, ES calculations, and regulatory scenario sets.",
-    records: "67K", updated: "2025-12-17", region: "Global", classification: "Store",
-    access: false, topics: ["Market Risk", "Stress Test", "VaR"],
-  },
-  {
-    type: "KB", badge: "KB", badgeColor: "#3a7aba",
-    name: "Trade Surveillance KB",
-    tags: [{ label: "Knowledgebase", color: "#3a7aba" }, { label: "Compliance", color: "#8a5aba" }],
-    path: "s3://fusion-data/compliance/trade-surveillance-kb/",
-    desc: "Knowledge base of trade surveillance patterns, alert typologies, regulatory guidance on market abuse, and investigation playbooks.",
-    records: "3.8K", updated: "2025-11-28", region: "Global", classification: "Knowledgebase",
-    access: true, topics: ["Surveillance", "Compliance", "Patterns"],
+    topics: ["Equities", "Reference", "Instruments"],
   },
 ];
 
-// ─── Dataset card ──────────────────────────────────────────────────────────────
-function DatasetCard({ item, onMakeKB, onQuery }) {
-  const isKB = item.type === "KB";
-
+// ─── KB tile ───────────────────────────────────────────────────────────────────
+function KBTile({ item, canEdit, onMakeKB }) {
   return (
     <div style={{
-      background: "#0d0d0d", border: "1px solid #222", borderRadius: "10px",
-      display: "flex", flexDirection: "column", overflow: "hidden",
-      transition: "border-color 0.15s",
+      background: "#0d0d0d", border: `1px solid ${canEdit ? "#2a3a2a" : "#222"}`,
+      borderRadius: "10px", display: "flex", flexDirection: "column", overflow: "hidden",
+      transition: "border-color 0.15s", opacity: canEdit ? 1 : 0.6,
     }}
-      onMouseEnter={(e) => e.currentTarget.style.borderColor = "#333"}
-      onMouseLeave={(e) => e.currentTarget.style.borderColor = "#222"}
+      onMouseEnter={(e) => canEdit && (e.currentTarget.style.borderColor = "#3a5a3a")}
+      onMouseLeave={(e) => e.currentTarget.style.borderColor = canEdit ? "#2a3a2a" : "#222"}
     >
-      {/* Card header */}
+      {/* Header */}
       <div style={{ padding: "14px 16px 10px" }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "6px" }}>
           <span style={{
@@ -150,14 +80,14 @@ function DatasetCard({ item, onMakeKB, onQuery }) {
         ))}
       </div>
 
-      {/* Access + topic tags */}
+      {/* Access + topics */}
       <div style={{ padding: "10px 12px", borderBottom: "1px solid #1a1a1a", display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
         <span style={{
-          background: item.access ? "#0a2a0a" : "#2a0a0a",
-          border: `1px solid ${item.access ? "#2a6a2a" : "#6a2a2a"}`,
-          color: item.access ? "#3a9a5a" : "#ba4a4a",
+          background: canEdit ? "#0a2a0a" : "#1a1a1a",
+          border: `1px solid ${canEdit ? "#2a6a2a" : "#2a2a2a"}`,
+          color: canEdit ? "#3a9a5a" : "#555",
           padding: "2px 7px", borderRadius: "3px", fontSize: "10px", fontWeight: 700,
-        }}>{item.access ? "Access Granted" : "No Access"}</span>
+        }}>{canEdit ? "Access Granted" : "No Access"}</span>
         <span style={{ background: "#0a1a2a", border: "1px solid #1a3a5a", color: "#3a7aba", padding: "2px 7px", borderRadius: "3px", fontSize: "10px", fontWeight: 600 }}>
           RAG Pipeline
         </span>
@@ -166,104 +96,67 @@ function DatasetCard({ item, onMakeKB, onQuery }) {
         ))}
       </div>
 
-      {/* Action buttons */}
+      {/* Actions */}
       <div style={{ padding: "10px 12px", display: "flex", gap: "6px", marginTop: "auto" }}>
         <button style={{ flex: 1, background: "#111", border: "1px solid #2a2a2a", borderRadius: "5px", padding: "7px 0", color: "#888", cursor: "pointer", fontSize: "11px", fontWeight: 600 }}>
           Preview
         </button>
-        {!item.access ? (
-          <button style={{ flex: 1.5, background: "#111", border: "1px solid #3a2a2a", borderRadius: "5px", padding: "7px 0", color: "#ba6a6a", cursor: "pointer", fontSize: "11px", fontWeight: 600 }}>
-            Request Access
-          </button>
-        ) : isKB ? (
-          <button onClick={onQuery}
-            style={{ flex: 1.5, background: "#1a2a4a", border: "1px solid #3a6aba", borderRadius: "5px", padding: "7px 0", color: "#7aabea", cursor: "pointer", fontSize: "11px", fontWeight: 700 }}>
-            Open &amp; Query
-          </button>
-        ) : (
+        {canEdit ? (
           <button onClick={onMakeKB}
-            style={{ flex: 1.5, background: "#111827", border: "1px solid #3a4a6a", borderRadius: "5px", padding: "7px 0", color: "#fff", cursor: "pointer", fontSize: "11px", fontWeight: 700 }}>
+            style={{ flex: 2, background: "#111827", border: "1px solid #3a4a6a", borderRadius: "5px", padding: "7px 0", color: "#fff", cursor: "pointer", fontSize: "11px", fontWeight: 700 }}>
             Make Knowledgebase
           </button>
-        )}
-        {item.access && (
-          <button style={{ flex: 1, background: "#111", border: "1px solid #2a2a2a", borderRadius: "5px", padding: "7px 0", color: "#666", cursor: "pointer", fontSize: "11px" }}>
-            Advanced Config
+        ) : (
+          <button disabled
+            style={{ flex: 2, background: "#111", border: "1px solid #222", borderRadius: "5px", padding: "7px 0", color: "#444", cursor: "not-allowed", fontSize: "11px", fontWeight: 600 }}>
+            No Access
           </button>
         )}
+        <button style={{ flex: 1, background: "#111", border: "1px solid #2a2a2a", borderRadius: "5px", padding: "7px 0", color: "#666", cursor: "pointer", fontSize: "11px" }}>
+          Advanced Config
+        </button>
       </div>
     </div>
   );
 }
 
-// ─── Inline query panel ────────────────────────────────────────────────────────
-function QueryPanel({ item, onClose }) {
-  const { user } = useAuth();
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [provider, setProvider] = useState("xai");
-
-  const handleAsk = async () => {
-    if (!question.trim()) return;
-    setLoading(true);
-    setAnswer(null);
-    try {
-      const res = await fetch("/v1/qa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-user-id": user.userid, authorization: `Bearer ${user.token}` },
-        body: JSON.stringify({ kb_name: item.name, question, provider }),
-      });
-      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-      setAnswer(await res.json());
-    } catch (err) {
-      setAnswer({ answer: `Error: ${err.message}`, model: "—" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+// ─── "Untitled (New)" create tile ─────────────────────────────────────────────
+function NewKBTile({ onCreate }) {
+  const [hovered, setHovered] = useState(false);
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
-      <div style={{ background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: "12px", width: "640px", maxWidth: "90vw", padding: "28px" }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-              <span style={{ background: "#3a7aba20", border: "1px solid #3a7aba50", color: "#3a7aba", padding: "2px 7px", borderRadius: "4px", fontSize: "10px", fontWeight: 700 }}>KB</span>
-              <span style={{ color: "#fff", fontSize: "16px", fontWeight: 700 }}>{item.name}</span>
-              <span style={{ background: "#0a2a0a", border: "1px solid #2a6a2a", color: "#3a9a5a", padding: "1px 6px", borderRadius: "3px", fontSize: "9px", fontWeight: 700 }}>LIVE</span>
-            </div>
-            <div style={{ color: "#555", fontSize: "12px" }}>Query this knowledge base with natural language</div>
-          </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: "18px", padding: "2px 6px" }}>✕</button>
-        </div>
-
-        <div style={{ display: "flex", gap: "6px", marginBottom: "14px" }}>
-          {[{ id: "xai", label: "Grok (xAI)" }, { id: "anthropic", label: "Claude" }].map((p) => (
-            <button key={p.id} onClick={() => setProvider(p.id)}
-              style={{ background: provider === p.id ? "#1a2a3a" : "#0d0d0d", border: `1px solid ${provider === p.id ? "#3a7aba" : "#2a2a2a"}`, borderRadius: "6px", padding: "6px 14px", color: provider === p.id ? "#7aabea" : "#555", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-
-        <textarea value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask a question about this knowledge base..." rows={3}
-          style={{ width: "100%", background: "#080808", border: "1px solid #333", borderRadius: "6px", padding: "10px 12px", color: "#ddd", fontSize: "13px", resize: "vertical", fontFamily: "'IBM Plex Sans', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: "10px" }} />
-
-        <button onClick={handleAsk} disabled={loading || !question.trim()}
-          style={{ width: "100%", background: loading ? "#111" : "#1a2a3a", border: `1px solid ${loading ? "#333" : "#3a7aba"}`, borderRadius: "6px", padding: "10px", color: loading ? "#555" : "#fff", cursor: loading || !question.trim() ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "13px", marginBottom: "14px" }}>
-          {loading ? "Querying…" : "Ask"}
-        </button>
-
-        {answer && (
-          <div style={{ background: "#080808", border: "1px solid #1a3a5a", borderRadius: "8px", padding: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-              <span style={{ color: "#3a7aba", fontSize: "11px", fontWeight: 700 }}>ANSWER</span>
-              {answer.model && <span style={{ background: "#0a1a2a", border: "1px solid #1a3a5a", color: "#4a8aaa", padding: "1px 7px", borderRadius: "3px", fontSize: "10px" }}>{answer.model}</span>}
-            </div>
-            <div style={{ color: "#ccc", fontSize: "13px", lineHeight: "1.6", whiteSpace: "pre-wrap" }}>{answer.answer}</div>
-          </div>
-        )}
+    <div
+      onClick={onCreate}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? "#0a1020" : "#080808",
+        border: `1px dashed ${hovered ? "#3a7aba" : "#2a2a2a"}`,
+        borderRadius: "10px", display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        minHeight: "280px", cursor: "pointer", transition: "all 0.15s",
+        gap: "14px", padding: "28px",
+      }}
+    >
+      <div style={{
+        width: "48px", height: "48px", borderRadius: "50%",
+        background: hovered ? "#1a2a4a" : "#111",
+        border: `1px solid ${hovered ? "#3a7aba" : "#2a2a2a"}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: "24px", color: hovered ? "#3a7aba" : "#444",
+        transition: "all 0.15s",
+      }}>+</div>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ color: hovered ? "#ccc" : "#555", fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>Untitled (New)</div>
+        <div style={{ color: "#444", fontSize: "11px", lineHeight: "1.5" }}>Start the KB creation workflow —<br />connect a source, load docs, configure RAG</div>
+      </div>
+      <div style={{
+        background: hovered ? "#1a2a3a" : "transparent",
+        border: `1px solid ${hovered ? "#3a7aba" : "#2a2a2a"}`,
+        borderRadius: "6px", padding: "7px 18px",
+        color: hovered ? "#7aabea" : "#444", fontSize: "12px", fontWeight: 700,
+        transition: "all 0.15s",
+      }}>
+        Create New KB →
       </div>
     </div>
   );
@@ -272,7 +165,6 @@ function QueryPanel({ item, onClose }) {
 // ─── Main KBHub component ──────────────────────────────────────────────────────
 export default function KBHub({ onCreateNew, onUploadDocs }) {
   const { user, setUser } = useAuth();
-  const [queryTarget, setQueryTarget] = useState(null);
   const [search, setSearch] = useState("");
 
   if (!user) return null;
@@ -289,24 +181,17 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
 
       {/* ── Left Sidebar ── */}
       <div style={{ width: "200px", flexShrink: 0, background: "#080808", borderRight: "1px solid #1a1a1a", display: "flex", flexDirection: "column" }}>
-        {/* Logo */}
         <div style={{ padding: "20px 18px 14px", borderBottom: "1px solid #1a1a1a" }}>
           <div style={{ fontWeight: 800, fontSize: "15px", color: "#fff", letterSpacing: "-0.5px" }}>Knowledge</div>
           <div style={{ color: "#444", fontSize: "11px" }}>on Fusion</div>
         </div>
 
-        {/* Single nav item */}
         <nav style={{ flex: 1, padding: "10px 0" }}>
-          <div style={{
-            width: "100%", textAlign: "left", background: "#1a2a3a",
-            borderLeft: "2px solid #3a7aba",
-            padding: "9px 18px", color: "#fff",
-          }}>
+          <div style={{ background: "#1a2a3a", borderLeft: "2px solid #3a7aba", padding: "9px 18px", color: "#fff" }}>
             <div style={{ fontSize: "13px", fontWeight: 700 }}>Knowledge</div>
           </div>
         </nav>
 
-        {/* Bottom: user + stats */}
         <div style={{ borderTop: "1px solid #1a1a1a", padding: "12px 18px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
             <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: `${user.color}20`, border: `1px solid ${user.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", color: user.color, fontWeight: 700, flexShrink: 0 }}>
@@ -315,16 +200,6 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
             <div>
               <div style={{ fontSize: "11px", fontWeight: 700, color: user.color }}>{user.userid}</div>
               <div style={{ fontSize: "10px", color: "#444" }}>{user.label}</div>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: "12px", marginBottom: "8px" }}>
-            <div>
-              <div style={{ fontSize: "16px", fontWeight: 700, color: "#fff" }}>4</div>
-              <div style={{ fontSize: "10px", color: "#555" }}>Deployed</div>
-            </div>
-            <div>
-              <div style={{ fontSize: "16px", fontWeight: 700, color: "#3a9a5a" }}>2</div>
-              <div style={{ fontSize: "10px", color: "#555" }}>Running</div>
             </div>
           </div>
           <button onClick={() => setUser(null)}
@@ -341,13 +216,13 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>Knowledge</h1>
-              <div style={{ color: "#555", fontSize: "13px", marginTop: "2px" }}>S3 datasets, source datasets &amp; data products</div>
+              <div style={{ color: "#555", fontSize: "13px", marginTop: "2px" }}>Your knowledge bases &amp; datasets</div>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               <input
                 value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search datasets..."
-                style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: "6px", padding: "8px 14px", color: "#ccc", fontSize: "13px", outline: "none", width: "220px", fontFamily: "'IBM Plex Sans', sans-serif" }}
+                style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: "6px", padding: "8px 14px", color: "#ccc", fontSize: "13px", outline: "none", width: "200px", fontFamily: "'IBM Plex Sans', sans-serif" }}
               />
               <button onClick={onCreateNew}
                 style={{ background: "#1a2a3a", border: "1px solid #3a7aba", borderRadius: "6px", padding: "8px 18px", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap" }}>
@@ -358,11 +233,11 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
         </div>
 
         {/* Scrollable content */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px 28px" }}>
-          {/* Upload strip — goes to Direct Upload in step 1 */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
+          {/* Upload strip */}
           <div
             onClick={onUploadDocs}
-            style={{ border: "1px dashed #2a2a2a", borderRadius: "8px", padding: "14px 20px", marginBottom: "20px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", background: "#080808", transition: "border-color 0.15s" }}
+            style={{ border: "1px dashed #2a2a2a", borderRadius: "8px", padding: "14px 20px", marginBottom: "28px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", background: "#080808", transition: "border-color 0.15s" }}
             onMouseEnter={(e) => e.currentTarget.style.borderColor = "#3a7aba"}
             onMouseLeave={(e) => e.currentTarget.style.borderColor = "#2a2a2a"}
           >
@@ -373,21 +248,28 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
             </div>
           </div>
 
-          {/* Count */}
-          <div style={{ color: "#555", fontSize: "12px", marginBottom: "14px" }}>
-            Showing <strong style={{ color: "#aaa" }}>{filtered.length}</strong> of {CATALOG.length} datasets
+          {/* Entitlement notice */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+            <div style={{ color: "#555", fontSize: "12px" }}>
+              Showing datasets for <span style={{ color: user.color, fontWeight: 700 }}>{user.userid}</span>
+              <span style={{ color: "#444" }}> · You can create knowledge bases only from datasets you own</span>
+            </div>
           </div>
 
-          {/* Card grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+          {/* 3-column grid: 2 catalog tiles + 1 "new" tile */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
             {filtered.map((item) => (
-              <DatasetCard key={item.name} item={item} onMakeKB={onCreateNew} onQuery={() => setQueryTarget(item)} />
+              <KBTile
+                key={item.id}
+                item={item}
+                canEdit={item.owner === user.userid}
+                onMakeKB={onCreateNew}
+              />
             ))}
+            <NewKBTile onCreate={onCreateNew} />
           </div>
         </div>
       </div>
-
-      {queryTarget && <QueryPanel item={queryTarget} onClose={() => setQueryTarget(null)} />}
     </div>
   );
 }
