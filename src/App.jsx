@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import AuthGate from "./components/AuthGate";
 import KBHub from "./KBHub";
 import KnowledgeWorkflow from "./KnowledgeWorkflow";
 
-export default function App() {
+function AppInner() {
   const { user } = useAuth();
   const [view, setView] = useState("hub"); // "hub" | "workflow"
   const [workflowInitialStep, setWorkflowInitialStep] = useState(0);
@@ -29,5 +30,13 @@ export default function App() {
       onCreateNew={() => { setWorkflowInitialStep(0); setWorkflowInitialSource(null); setView("workflow"); }}
       onUploadDocs={() => { setWorkflowInitialStep(0); setWorkflowInitialSource("upload"); setView("workflow"); }}
     />
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
   );
 }

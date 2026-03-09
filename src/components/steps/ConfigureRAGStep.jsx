@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 const stages = [
   {
@@ -137,32 +138,33 @@ const stages = [
 ];
 
 export default function ConfigureRAGStep({ onDeploy }) {
+  const { t } = useTheme();
   const [activeStage, setActiveStage] = useState(1);
   const stage = stages.find((s) => s.num === activeStage);
 
   return (
     <div>
-      <p style={{ color: "#999", fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0" }}>
+      <p style={{ color: t.textDim, fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0" }}>
         Configure how documents are split, embedded, stored, and retrieved. Defaults are tuned for financial documents —
         power users can customize every knob.
       </p>
 
-      <div style={{ background: "#0d0d0d", border: "1px solid #222", borderRadius: "10px", overflow: "hidden" }}>
+      <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "10px", overflow: "hidden" }}>
         {/* Header bar */}
         <div
           style={{
-            background: "#111",
+            background: t.panelBg,
             padding: "14px 20px",
-            borderBottom: "1px solid #222",
+            borderBottom: `1px solid ${t.border}`,
             display: "flex",
             alignItems: "center",
             gap: "10px",
           }}
         >
-          <span style={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>RAG</span>
-          <span style={{ color: "#888", fontSize: "13px" }}>Advanced RAG Config</span>
-          <span style={{ color: "#555", fontSize: "13px" }}>·</span>
-          <span style={{ color: "#aaa", fontSize: "13px", fontWeight: 500 }}>CCB Risk Exposures</span>
+          <span style={{ color: t.textStrong, fontWeight: 700, fontSize: "14px" }}>RAG</span>
+          <span style={{ color: t.textMuted, fontSize: "13px" }}>Advanced RAG Config</span>
+          <span style={{ color: t.textGhost, fontSize: "13px" }}>·</span>
+          <span style={{ color: t.textDim, fontSize: "13px", fontWeight: 500 }}>CCB Risk Exposures</span>
         </div>
 
         {/* Stage tabs */}
@@ -170,7 +172,7 @@ export default function ConfigureRAGStep({ onDeploy }) {
           style={{
             display: "flex",
             padding: "14px 20px",
-            borderBottom: "1px solid #1a1a1a",
+            borderBottom: `1px solid ${t.borderSubtle}`,
             gap: "16px",
           }}
         >
@@ -193,9 +195,9 @@ export default function ConfigureRAGStep({ onDeploy }) {
                   width: "24px",
                   height: "24px",
                   borderRadius: "50%",
-                  background: s.num === activeStage ? "#2a6a3a" : s.num < activeStage ? "#1a4a2a" : "#222",
-                  border: `2px solid ${s.num === activeStage ? "#3a9a5a" : s.num < activeStage ? "#3a9a5a" : "#444"}`,
-                  color: s.num <= activeStage ? "#fff" : "#666",
+                  background: s.num === activeStage ? "#2a6a3a" : s.num < activeStage ? "#1a4a2a" : t.border,
+                  border: `2px solid ${s.num === activeStage ? "#3a9a5a" : s.num < activeStage ? "#3a9a5a" : t.textDisabled}`,
+                  color: s.num <= activeStage ? t.textStrong : t.textMuted,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -207,7 +209,7 @@ export default function ConfigureRAGStep({ onDeploy }) {
               </div>
               <span
                 style={{
-                  color: s.num === activeStage ? "#fff" : "#777",
+                  color: s.num === activeStage ? t.textStrong : t.textFaint,
                   fontSize: "13px",
                   fontWeight: s.num === activeStage ? 600 : 400,
                 }}
@@ -220,7 +222,7 @@ export default function ConfigureRAGStep({ onDeploy }) {
 
         {/* Config content */}
         <div style={{ padding: "20px" }}>
-          <div style={{ color: "#ddd", fontSize: "15px", fontWeight: 600, marginBottom: "14px" }}>
+          <div style={{ color: t.text, fontSize: "15px", fontWeight: 600, marginBottom: "14px" }}>
             {stage.config.title}
           </div>
 
@@ -231,8 +233,8 @@ export default function ConfigureRAGStep({ onDeploy }) {
                 <div
                   key={opt.name}
                   style={{
-                    background: opt.selected ? "#0a1a15" : "#111",
-                    border: `1px solid ${opt.selected ? "#2a5a3a" : "#222"}`,
+                    background: opt.selected ? t.greenTint : t.panelBg,
+                    border: `1px solid ${opt.selected ? "#2a5a3a" : t.border}`,
                     borderRadius: "6px",
                     padding: "12px 14px",
                     cursor: "pointer",
@@ -244,7 +246,7 @@ export default function ConfigureRAGStep({ onDeploy }) {
                         width: "16px",
                         height: "16px",
                         borderRadius: "4px",
-                        border: `2px solid ${opt.selected ? "#3a9a5a" : "#444"}`,
+                        border: `2px solid ${opt.selected ? "#3a9a5a" : t.textDisabled}`,
                         background: opt.selected ? "#3a9a5a" : "transparent",
                         display: "flex",
                         alignItems: "center",
@@ -253,14 +255,14 @@ export default function ConfigureRAGStep({ onDeploy }) {
                       }}
                     >
                       {opt.selected && (
-                        <span style={{ color: "#fff", fontSize: "10px", fontWeight: 700 }}>✓</span>
+                        <span style={{ color: t.textStrong, fontSize: "10px", fontWeight: 700 }}>✓</span>
                       )}
                     </div>
-                    <span style={{ color: opt.selected ? "#ddd" : "#aaa", fontSize: "13px", fontWeight: 600 }}>
+                    <span style={{ color: opt.selected ? t.text : t.textDim, fontSize: "13px", fontWeight: 600 }}>
                       {opt.name}
                     </span>
                   </div>
-                  <div style={{ color: "#777", fontSize: "12px", marginLeft: "24px", lineHeight: "1.4" }}>
+                  <div style={{ color: t.textFaint, fontSize: "12px", marginLeft: "24px", lineHeight: "1.4" }}>
                     {opt.desc}
                   </div>
                 </div>
@@ -270,11 +272,11 @@ export default function ConfigureRAGStep({ onDeploy }) {
 
           {/* Parameters */}
           <div
-            style={{ background: "#080808", border: "1px solid #1a1a1a", borderRadius: "6px", padding: "14px" }}
+            style={{ background: t.deepBg, border: `1px solid ${t.borderSubtle}`, borderRadius: "6px", padding: "14px" }}
           >
             <div
               style={{
-                color: "#666",
+                color: t.textMuted,
                 fontSize: "10px",
                 fontWeight: 700,
                 textTransform: "uppercase",
@@ -290,11 +292,11 @@ export default function ConfigureRAGStep({ onDeploy }) {
                   display: "flex",
                   justifyContent: "space-between",
                   padding: "4px 0",
-                  borderBottom: "1px solid #111",
+                  borderBottom: `1px solid ${t.borderFaint}`,
                 }}
               >
-                <span style={{ color: "#888", fontSize: "12px" }}>{p.label}</span>
-                <span style={{ color: "#aaa", fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace" }}>
+                <span style={{ color: t.textMuted, fontSize: "12px" }}>{p.label}</span>
+                <span style={{ color: t.textDim, fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace" }}>
                   {p.value}
                 </span>
               </div>
@@ -306,11 +308,11 @@ export default function ConfigureRAGStep({ onDeploy }) {
             <button
               onClick={() => setActiveStage(Math.max(1, activeStage - 1))}
               style={{
-                background: "#111",
-                border: "1px solid #333",
+                background: t.panelBg,
+                border: `1px solid ${t.borderMid}`,
                 borderRadius: "6px",
                 padding: "10px 24px",
-                color: "#888",
+                color: t.textMuted,
                 cursor: "pointer",
                 fontSize: "13px",
                 fontWeight: 600,
@@ -327,11 +329,11 @@ export default function ConfigureRAGStep({ onDeploy }) {
                 }
               }}
               style={{
-                background: activeStage === 5 ? "#2a6a3a" : "#222",
-                border: `1px solid ${activeStage === 5 ? "#3a9a5a" : "#444"}`,
+                background: activeStage === 5 ? "#2a6a3a" : t.border,
+                border: `1px solid ${activeStage === 5 ? "#3a9a5a" : t.textDisabled}`,
                 borderRadius: "6px",
                 padding: "10px 24px",
-                color: "#fff",
+                color: t.textStrong,
                 cursor: "pointer",
                 fontSize: "13px",
                 fontWeight: 600,

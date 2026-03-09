@@ -1,6 +1,9 @@
 import { STEPS } from "../constants/steps";
+import { useTheme } from "../context/ThemeContext";
 
 export default function StepIndicator({ currentStep, onStepClick }) {
+  const { t } = useTheme();
+
   return (
     <div style={{ display: "flex", gap: "2px", marginBottom: "28px" }}>
       {STEPS.map((step, i) => {
@@ -13,8 +16,8 @@ export default function StepIndicator({ currentStep, onStepClick }) {
             onClick={() => onStepClick(step.id)}
             style={{
               flex: 1,
-              background: isActive ? "#1a2a3a" : isPast ? "#0a1a15" : "#111",
-              border: `1px solid ${isActive ? "#3a7aba" : isPast ? "#1a4a2a" : "#222"}`,
+              background: isActive ? t.blueTint : isPast ? t.greenTint : t.panelBg,
+              border: `1px solid ${isActive ? t.blue : isPast ? t.green : t.border}`,
               borderRadius: "6px",
               padding: "10px 8px",
               cursor: "pointer",
@@ -28,7 +31,7 @@ export default function StepIndicator({ currentStep, onStepClick }) {
             <span style={{ fontSize: "16px" }}>{step.icon}</span>
             <span
               style={{
-                color: isActive ? "#3a7aba" : isPast ? "#3a9a5a" : "#666",
+                color: isActive ? t.blue : isPast ? t.green : t.textMuted,
                 fontSize: "11px",
                 fontWeight: isActive ? 700 : 500,
                 textAlign: "center",

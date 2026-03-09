@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 const FLOW_STEPS = [
   { id: "choose", label: "Choose Method" },
@@ -9,6 +10,7 @@ const FLOW_STEPS = [
 ];
 
 function ProgressBar({ currentIndex }) {
+  const { t } = useTheme();
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "0", marginBottom: "32px" }}>
       {FLOW_STEPS.map((step, i) => {
@@ -22,8 +24,8 @@ function ProgressBar({ currentIndex }) {
                   width: "32px",
                   height: "32px",
                   borderRadius: "50%",
-                  background: isPast ? "#1a4a2a" : isActive ? "#1a2a3a" : "#151515",
-                  border: `2px solid ${isPast ? "#3a9a5a" : isActive ? "#3a7aba" : "#333"}`,
+                  background: isPast ? "#1a4a2a" : isActive ? "#1a2a3a" : t.inputBg,
+                  border: `2px solid ${isPast ? "#3a9a5a" : isActive ? "#3a7aba" : t.borderMid}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -33,12 +35,12 @@ function ProgressBar({ currentIndex }) {
                 {isPast ? (
                   <span style={{ color: "#3a9a5a", fontSize: "14px" }}>✓</span>
                 ) : (
-                  <span style={{ color: isActive ? "#3a7aba" : "#555", fontSize: "13px", fontWeight: 700 }}>{i + 1}</span>
+                  <span style={{ color: isActive ? "#3a7aba" : t.textGhost, fontSize: "13px", fontWeight: 700 }}>{i + 1}</span>
                 )}
               </div>
               <span
                 style={{
-                  color: isPast ? "#3a9a5a" : isActive ? "#ccc" : "#555",
+                  color: isPast ? "#3a9a5a" : isActive ? t.text : t.textGhost,
                   fontSize: "10px",
                   fontWeight: isActive ? 600 : 400,
                   marginTop: "4px",
@@ -54,7 +56,7 @@ function ProgressBar({ currentIndex }) {
                 style={{
                   flex: 1,
                   height: "2px",
-                  background: isPast ? "#3a9a5a40" : "#222",
+                  background: isPast ? "#3a9a5a40" : t.border,
                   margin: "0 4px",
                   marginBottom: "18px",
                   transition: "all 0.3s",
@@ -79,6 +81,7 @@ function LoadingDots() {
 
 // ─── Sub-step 1: Choose Method ───
 function ChooseMethodStep({ onNext }) {
+  const { t } = useTheme();
   const [selected, setSelected] = useState("auto");
 
   const methods = [
@@ -113,10 +116,10 @@ function ChooseMethodStep({ onNext }) {
 
   return (
     <div>
-      <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
+      <h3 style={{ color: t.textStrong, fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
         How should Fusion access your S3 bucket?
       </h3>
-      <p style={{ color: "#888", fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
+      <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
         All methods create an IAM role in <em>your</em> AWS account. Fusion assumes this role with read-only permissions. No credentials are stored — you can revoke access anytime.
       </p>
 
@@ -126,8 +129,8 @@ function ChooseMethodStep({ onNext }) {
             key={m.id}
             onClick={() => setSelected(m.id)}
             style={{
-              background: selected === m.id ? "#0d1520" : "#0d0d0d",
-              border: `2px solid ${selected === m.id ? "#3a7aba" : "#1a1a1a"}`,
+              background: selected === m.id ? t.blueTint : t.cardBg,
+              border: `2px solid ${selected === m.id ? "#3a7aba" : t.borderSubtle}`,
               borderRadius: "10px",
               padding: "18px 20px",
               cursor: "pointer",
@@ -141,7 +144,7 @@ function ChooseMethodStep({ onNext }) {
                   width: "20px",
                   height: "20px",
                   borderRadius: "50%",
-                  border: `2px solid ${selected === m.id ? "#3a7aba" : "#444"}`,
+                  border: `2px solid ${selected === m.id ? "#3a7aba" : t.textDisabled}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -153,7 +156,7 @@ function ChooseMethodStep({ onNext }) {
                   <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#3a7aba" }} />
                 )}
               </div>
-              <span style={{ color: "#fff", fontSize: "16px", fontWeight: 600 }}>{m.title}</span>
+              <span style={{ color: t.textStrong, fontSize: "16px", fontWeight: 600 }}>{m.title}</span>
               <span
                 style={{
                   background: `${m.badgeColor}15`,
@@ -167,9 +170,9 @@ function ChooseMethodStep({ onNext }) {
               >
                 {m.badge}
               </span>
-              <span style={{ color: "#555", fontSize: "12px", marginLeft: "auto" }}>{m.time}</span>
+              <span style={{ color: t.textGhost, fontSize: "12px", marginLeft: "auto" }}>{m.time}</span>
             </div>
-            <p style={{ color: "#888", fontSize: "13px", lineHeight: "1.5", margin: "0 0 10px 30px" }}>
+            <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.5", margin: "0 0 10px 30px" }}>
               {m.desc}
             </p>
             {selected === m.id && (
@@ -193,8 +196,8 @@ function ChooseMethodStep({ onNext }) {
                     >
                       {i + 1}
                     </span>
-                    <span style={{ color: "#777", fontSize: "11px" }}>{step}</span>
-                    {i < m.steps.length - 1 && <span style={{ color: "#333", margin: "0 2px" }}>→</span>}
+                    <span style={{ color: t.textFaint, fontSize: "11px" }}>{step}</span>
+                    {i < m.steps.length - 1 && <span style={{ color: t.borderMid, margin: "0 2px" }}>→</span>}
                   </div>
                 ))}
               </div>
@@ -210,7 +213,7 @@ function ChooseMethodStep({ onNext }) {
           border: "1px solid #3a7aba",
           borderRadius: "8px",
           padding: "12px 32px",
-          color: "#fff",
+          color: t.textStrong,
           cursor: "pointer",
           fontWeight: 600,
           fontSize: "14px",
@@ -225,20 +228,21 @@ function ChooseMethodStep({ onNext }) {
 
 // ─── Sub-step 2: Enter Bucket ───
 function BucketStep({ onNext }) {
+  const { t } = useTheme();
   const [bucket, setBucket] = useState("s3://fusion-data/ccb-risk/ccb-risk-exposures/");
   const [scanned, setScanned] = useState(false);
 
   return (
     <div>
-      <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
+      <h3 style={{ color: t.textStrong, fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
         Point to your S3 bucket
       </h3>
-      <p style={{ color: "#888", fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
+      <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
         Enter the bucket URI. You can scope to a prefix (folder) within the bucket.
       </p>
 
-      <div style={{ background: "#0d0d0d", border: "1px solid #222", borderRadius: "10px", padding: "20px", marginBottom: "16px" }}>
-        <label style={{ color: "#888", fontSize: "12px", fontWeight: 600, display: "block", marginBottom: "6px" }}>
+      <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "10px", padding: "20px", marginBottom: "16px" }}>
+        <label style={{ color: t.textMuted, fontSize: "12px", fontWeight: 600, display: "block", marginBottom: "6px" }}>
           S3 Bucket URI
         </label>
         <div style={{ display: "flex", gap: "8px" }}>
@@ -248,11 +252,11 @@ function BucketStep({ onNext }) {
             onChange={(e) => { setBucket(e.target.value); setScanned(false); }}
             style={{
               flex: 1,
-              background: "#111",
-              border: "1px solid #333",
+              background: t.inputBg,
+              border: `1px solid ${t.borderMid}`,
               borderRadius: "6px",
               padding: "10px 14px",
-              color: "#ddd",
+              color: t.text,
               fontSize: "14px",
               fontFamily: "'IBM Plex Mono', monospace",
               outline: "none",
@@ -282,11 +286,11 @@ function BucketStep({ onNext }) {
             { label: "Region", value: "us-east-1" },
           ].map((f) => (
             <div key={f.label}>
-              <label style={{ color: "#666", fontSize: "11px", fontWeight: 600, display: "block", marginBottom: "4px" }}>
+              <label style={{ color: t.textMuted, fontSize: "11px", fontWeight: 600, display: "block", marginBottom: "4px" }}>
                 {f.label}
               </label>
-              <div style={{ background: "#111", border: "1px solid #333", borderRadius: "4px", padding: "8px 12px", color: "#aaa", fontSize: "13px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                {f.value} <span style={{ color: "#555" }}>▾</span>
+              <div style={{ background: t.inputBg, border: `1px solid ${t.borderMid}`, borderRadius: "4px", padding: "8px 12px", color: t.textDim, fontSize: "13px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                {f.value} <span style={{ color: t.textGhost }}>▾</span>
               </div>
             </div>
           ))}
@@ -294,7 +298,7 @@ function BucketStep({ onNext }) {
       </div>
 
       {scanned && (
-        <div style={{ background: "#0a1a15", border: "1px solid #1a4a2a", borderRadius: "10px", padding: "20px", marginBottom: "16px" }}>
+        <div style={{ background: t.greenTint, border: "1px solid #1a4a2a", borderRadius: "10px", padding: "20px", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#3a9a5a" }} />
             <span style={{ color: "#3a9a5a", fontWeight: 700, fontSize: "13px" }}>Bucket found</span>
@@ -307,9 +311,9 @@ function BucketStep({ onNext }) {
               { label: "Total Size", value: "2.8 GB" },
               { label: "Last Modified", value: "2025-12-22" },
             ].map((m) => (
-              <div key={m.label} style={{ background: "#081208", border: "1px solid #1a3a1a", borderRadius: "4px", padding: "8px 10px" }}>
+              <div key={m.label} style={{ background: t.deepBg, border: "1px solid #1a3a1a", borderRadius: "4px", padding: "8px 10px" }}>
                 <div style={{ color: "#5a8a5a", fontSize: "10px", fontWeight: 600 }}>{m.label}</div>
-                <div style={{ color: "#bbb", fontSize: "14px", fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace" }}>{m.value}</div>
+                <div style={{ color: t.text, fontSize: "14px", fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace" }}>{m.value}</div>
               </div>
             ))}
           </div>
@@ -335,11 +339,11 @@ function BucketStep({ onNext }) {
         onClick={onNext}
         disabled={!scanned}
         style={{
-          background: scanned ? "#1a3a5a" : "#151515",
-          border: `1px solid ${scanned ? "#3a7aba" : "#333"}`,
+          background: scanned ? "#1a3a5a" : t.inputBg,
+          border: `1px solid ${scanned ? "#3a7aba" : t.borderMid}`,
           borderRadius: "8px",
           padding: "12px 32px",
-          color: scanned ? "#fff" : "#555",
+          color: scanned ? t.textStrong : t.textGhost,
           cursor: scanned ? "pointer" : "not-allowed",
           fontWeight: 600,
           fontSize: "14px",
@@ -354,6 +358,7 @@ function BucketStep({ onNext }) {
 
 // ─── Sub-step 3: Provision ───
 function ProvisionStep({ onNext }) {
+  const { t } = useTheme();
   const [phase, setPhase] = useState("preview");
 
   const handleLaunch = () => {
@@ -378,23 +383,23 @@ function ProvisionStep({ onNext }) {
 
   return (
     <div>
-      <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
+      <h3 style={{ color: t.textStrong, fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
         {phase === "complete" ? "Access provisioned" : "Review & authorize access"}
       </h3>
-      <p style={{ color: "#888", fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
+      <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
         {phase === "preview" && "Fusion has generated a CloudFormation template. Review what will be created in your AWS account, then click to deploy."}
         {phase === "launching" && "Opening AWS CloudFormation in a new tab with the pre-filled template..."}
         {phase === "waiting" && "Waiting for you to click 'Create Stack' in the AWS tab. Fusion is polling for the role..."}
         {phase === "complete" && "The IAM role has been created and Fusion has verified access. No credentials were stored."}
       </p>
 
-      <div style={{ background: "#0d0d0d", border: "1px solid #222", borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
-        <div style={{ background: "#111", padding: "14px 20px", borderBottom: "1px solid #222", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
+        <div style={{ background: t.panelBg, padding: "14px 20px", borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ color: "#ba8a3a", fontSize: "14px" }}>☁</span>
-            <span style={{ color: "#ddd", fontWeight: 600, fontSize: "14px" }}>CloudFormation Stack</span>
+            <span style={{ color: t.text, fontWeight: 600, fontSize: "14px" }}>CloudFormation Stack</span>
           </div>
-          <span style={{ color: "#777", fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace" }}>{stackDetails.name}</span>
+          <span style={{ color: t.textFaint, fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace" }}>{stackDetails.name}</span>
         </div>
 
         <div style={{ padding: "20px" }}>
@@ -403,12 +408,12 @@ function ProvisionStep({ onNext }) {
               Resources Created in Your Account
             </div>
             {stackDetails.resources.map((r) => (
-              <div key={r.name} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: "#080808", border: "1px solid #1a1a1a", borderRadius: "6px", marginBottom: "6px" }}>
-                <span style={{ color: "#3a7aba", fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace", background: "#0a1520", padding: "2px 8px", borderRadius: "3px", flexShrink: 0 }}>
+              <div key={r.name} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: t.deepBg, border: `1px solid ${t.borderSubtle}`, borderRadius: "6px", marginBottom: "6px" }}>
+                <span style={{ color: "#3a7aba", fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace", background: t.blueTint, padding: "2px 8px", borderRadius: "3px", flexShrink: 0 }}>
                   {r.type}
                 </span>
-                <span style={{ color: "#ccc", fontSize: "13px", fontWeight: 500 }}>{r.name}</span>
-                <span style={{ color: "#666", fontSize: "12px", marginLeft: "auto" }}>{r.desc}</span>
+                <span style={{ color: t.text, fontSize: "13px", fontWeight: 500 }}>{r.name}</span>
+                <span style={{ color: t.textMuted, fontSize: "12px", marginLeft: "auto" }}>{r.desc}</span>
               </div>
             ))}
           </div>
@@ -417,11 +422,11 @@ function ProvisionStep({ onNext }) {
             <div style={{ color: "#3a9a5a", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", marginBottom: "10px" }}>
               Permissions Granted (Read-Only)
             </div>
-            <div style={{ background: "#081208", border: "1px solid #1a3a1a", borderRadius: "6px", overflow: "hidden" }}>
+            <div style={{ background: t.greenTint, border: "1px solid #1a3a1a", borderRadius: "6px", overflow: "hidden" }}>
               {stackDetails.permissions.map((p, i) => (
                 <div key={p.action} style={{ display: "grid", gridTemplateColumns: "180px 1fr 140px", padding: "8px 12px", borderBottom: i < stackDetails.permissions.length - 1 ? "1px solid #0a1a0a" : "none", alignItems: "center" }}>
                   <span style={{ color: "#3a9a5a", fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 500 }}>{p.action}</span>
-                  <span style={{ color: "#666", fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace" }}>{p.resource}</span>
+                  <span style={{ color: t.textMuted, fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace" }}>{p.resource}</span>
                   <span style={{ color: "#5a8a5a", fontSize: "11px", textAlign: "right" }}>{p.note}</span>
                 </div>
               ))}
@@ -439,7 +444,7 @@ function ProvisionStep({ onNext }) {
                 </span>
               ))}
             </div>
-            <div style={{ color: "#666", fontSize: "11px", marginTop: "8px" }}>
+            <div style={{ color: t.textMuted, fontSize: "11px", marginTop: "8px" }}>
               Fusion cannot write, delete, modify bucket policies, create users/roles, or access any other AWS service.
             </div>
           </div>
@@ -447,21 +452,21 @@ function ProvisionStep({ onNext }) {
       </div>
 
       {phase === "preview" && (
-        <button onClick={handleLaunch} style={{ background: "#1a3a5a", border: "1px solid #3a7aba", borderRadius: "8px", padding: "14px 32px", color: "#fff", cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+        <button onClick={handleLaunch} style={{ background: "#1a3a5a", border: "1px solid #3a7aba", borderRadius: "8px", padding: "14px 32px", color: t.textStrong, cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
           <span>Launch Stack in AWS</span>
           <span style={{ fontSize: "12px", opacity: 0.6 }}>↗ opens in new tab with pre-filled template</span>
         </button>
       )}
 
       {phase === "launching" && (
-        <div style={{ background: "#0d1520", border: "1px solid #1a3a5a", borderRadius: "8px", padding: "20px", textAlign: "center" }}>
+        <div style={{ background: t.blueTint, border: "1px solid #1a3a5a", borderRadius: "8px", padding: "20px", textAlign: "center" }}>
           <div style={{ color: "#3a7aba", fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>Opening AWS CloudFormation<LoadingDots /></div>
-          <div style={{ color: "#666", fontSize: "12px" }}>A new tab is opening with the pre-filled template. All fields are auto-populated — just click "Create Stack."</div>
+          <div style={{ color: t.textMuted, fontSize: "12px" }}>A new tab is opening with the pre-filled template. All fields are auto-populated — just click "Create Stack."</div>
         </div>
       )}
 
       {phase === "waiting" && (
-        <div style={{ background: "#111", border: "1px solid #333", borderRadius: "8px", padding: "20px" }}>
+        <div style={{ background: t.panelBg, border: `1px solid ${t.borderMid}`, borderRadius: "8px", padding: "20px" }}>
           <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
             <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ba8a3a", animation: "pulse 1.5s infinite" }} />
@@ -477,14 +482,14 @@ function ProvisionStep({ onNext }) {
               <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 {item.status === "done" && <span style={{ color: "#3a9a5a", fontSize: "14px" }}>✓</span>}
                 {item.status === "waiting" && <div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid #ba8a3a", borderTopColor: "transparent", animation: "spin 1s linear infinite" }} />}
-                {item.status === "pending" && <span style={{ color: "#444", fontSize: "14px" }}>○</span>}
-                <span style={{ color: item.status === "done" ? "#3a9a5a" : item.status === "waiting" ? "#ccc" : "#555", fontSize: "13px" }}>
+                {item.status === "pending" && <span style={{ color: t.textDisabled, fontSize: "14px" }}>○</span>}
+                <span style={{ color: item.status === "done" ? "#3a9a5a" : item.status === "waiting" ? t.text : t.textGhost, fontSize: "13px" }}>
                   {item.label}{item.status === "waiting" && <LoadingDots />}
                 </span>
               </div>
             ))}
           </div>
-          <div style={{ color: "#555", fontSize: "11px", marginTop: "12px", borderTop: "1px solid #1a1a1a", paddingTop: "10px" }}>
+          <div style={{ color: t.textGhost, fontSize: "11px", marginTop: "12px", borderTop: `1px solid ${t.borderSubtle}`, paddingTop: "10px" }}>
             Don't see the AWS tab? <span style={{ color: "#3a7aba", cursor: "pointer", textDecoration: "underline" }}>Click here to re-open</span>.
           </div>
         </div>
@@ -492,7 +497,7 @@ function ProvisionStep({ onNext }) {
 
       {phase === "complete" && (
         <div>
-          <div style={{ background: "#0a1a15", border: "1px solid #1a4a2a", borderRadius: "8px", padding: "20px", marginBottom: "12px" }}>
+          <div style={{ background: t.greenTint, border: "1px solid #1a4a2a", borderRadius: "8px", padding: "20px", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
               <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#3a9a5a", boxShadow: "0 0 10px #3a9a5a60" }} />
               <span style={{ color: "#3a9a5a", fontWeight: 700, fontSize: "14px" }}>Stack created successfully</span>
@@ -507,7 +512,7 @@ function ProvisionStep({ onNext }) {
             </div>
           </div>
 
-          <div style={{ background: "#0d0d0d", border: "1px solid #222", borderRadius: "8px", padding: "14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "12px" }}>
+          <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "12px" }}>
             {[
               { label: "Role ARN", value: "arn:aws:iam::987654321098:role/FusionKBReadOnlyRole" },
               { label: "External ID", value: "fusion-kb-ccb-risk-a7f3x" },
@@ -515,13 +520,13 @@ function ProvisionStep({ onNext }) {
               { label: "Revocation", value: "Delete the CloudFormation stack anytime" },
             ].map((d) => (
               <div key={d.label}>
-                <div style={{ color: "#555", fontSize: "10px", fontWeight: 600, textTransform: "uppercase" }}>{d.label}</div>
-                <div style={{ color: "#aaa", fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace" }}>{d.value}</div>
+                <div style={{ color: t.textGhost, fontSize: "10px", fontWeight: 600, textTransform: "uppercase" }}>{d.label}</div>
+                <div style={{ color: t.textDim, fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace" }}>{d.value}</div>
               </div>
             ))}
           </div>
 
-          <button onClick={onNext} style={{ background: "#1a4a2a", border: "1px solid #3a9a5a", borderRadius: "8px", padding: "12px 32px", color: "#fff", cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%" }}>
+          <button onClick={onNext} style={{ background: "#1a4a2a", border: "1px solid #3a9a5a", borderRadius: "8px", padding: "12px 32px", color: t.textStrong, cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%" }}>
             Continue to Verify Connection
           </button>
         </div>
@@ -532,6 +537,7 @@ function ProvisionStep({ onNext }) {
 
 // ─── Sub-step 4: Verify ───
 function VerifyStep({ onNext }) {
+  const { t } = useTheme();
   const [verifyPhase, setVerifyPhase] = useState("running");
 
   useEffect(() => {
@@ -549,24 +555,24 @@ function VerifyStep({ onNext }) {
 
   return (
     <div>
-      <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
+      <h3 style={{ color: t.textStrong, fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
         {verifyPhase === "running" ? "Verifying connection..." : "All checks passed"}
       </h3>
-      <p style={{ color: "#888", fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
+      <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
         Fusion is running a series of health checks to confirm end-to-end connectivity before you start loading documents.
       </p>
 
-      <div style={{ background: "#0d0d0d", border: "1px solid #222", borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
+      <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
         {checks.map((check, i) => (
-          <div key={check.name} style={{ display: "grid", gridTemplateColumns: "180px 1fr 80px 60px", padding: "12px 16px", borderBottom: i < checks.length - 1 ? "1px solid #111" : "none", alignItems: "center", opacity: check.status === "pending" ? 0.4 : 1, transition: "opacity 0.3s" }}>
-            <span style={{ color: "#ddd", fontSize: "13px", fontWeight: 500 }}>{check.name}</span>
-            <span style={{ color: "#777", fontSize: "12px" }}>{check.desc}</span>
+          <div key={check.name} style={{ display: "grid", gridTemplateColumns: "180px 1fr 80px 60px", padding: "12px 16px", borderBottom: i < checks.length - 1 ? `1px solid ${t.borderFaint}` : "none", alignItems: "center", opacity: check.status === "pending" ? 0.4 : 1, transition: "opacity 0.3s" }}>
+            <span style={{ color: t.text, fontSize: "13px", fontWeight: 500 }}>{check.name}</span>
+            <span style={{ color: t.textFaint, fontSize: "12px" }}>{check.desc}</span>
             <span style={{ textAlign: "right" }}>
               {check.status === "pass" && <span style={{ color: "#3a9a5a", fontWeight: 700, fontSize: "12px" }}>✓ Pass</span>}
               {check.status === "checking" && <span style={{ color: "#ba8a3a", fontSize: "12px" }}>Checking<LoadingDots /></span>}
-              {check.status === "pending" && <span style={{ color: "#444", fontSize: "12px" }}>Pending</span>}
+              {check.status === "pending" && <span style={{ color: t.textDisabled, fontSize: "12px" }}>Pending</span>}
             </span>
-            <span style={{ color: "#555", fontSize: "11px", textAlign: "right", fontFamily: "'IBM Plex Mono', monospace" }}>
+            <span style={{ color: t.textGhost, fontSize: "11px", textAlign: "right", fontFamily: "'IBM Plex Mono', monospace" }}>
               {check.status === "pass" ? check.time : "—"}
             </span>
           </div>
@@ -575,12 +581,12 @@ function VerifyStep({ onNext }) {
 
       {verifyPhase === "passed" && (
         <div>
-          <div style={{ background: "#0a1a15", border: "1px solid #1a4a2a", borderRadius: "8px", padding: "14px", marginBottom: "16px" }}>
+          <div style={{ background: t.greenTint, border: "1px solid #1a4a2a", borderRadius: "8px", padding: "14px", marginBottom: "16px" }}>
             <div style={{ color: "#3a9a5a", fontSize: "13px", fontWeight: 600 }}>
               ✓ Connection verified. Fusion can read from s3://fusion-data/ccb-risk/ccb-risk-exposures/ with 1,247 objects detected.
             </div>
           </div>
-          <button onClick={onNext} style={{ background: "#1a4a2a", border: "1px solid #3a9a5a", borderRadius: "8px", padding: "12px 32px", color: "#fff", cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%" }}>
+          <button onClick={onNext} style={{ background: "#1a4a2a", border: "1px solid #3a9a5a", borderRadius: "8px", padding: "12px 32px", color: t.textStrong, cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%" }}>
             Start Loading Documents
           </button>
         </div>
@@ -591,12 +597,13 @@ function VerifyStep({ onNext }) {
 
 // ─── Sub-step 5: Done ───
 function DoneStep() {
+  const { t } = useTheme();
   return (
     <div>
       <div style={{ background: "linear-gradient(135deg, #0a1a15, #0a1520)", border: "1px solid #1a4a2a", borderRadius: "12px", padding: "32px", textAlign: "center", marginBottom: "20px" }}>
         <div style={{ fontSize: "40px", marginBottom: "12px" }}>✓</div>
-        <h3 style={{ color: "#fff", fontSize: "22px", fontWeight: 700, marginBottom: "8px" }}>Source Connected</h3>
-        <p style={{ color: "#888", fontSize: "14px", lineHeight: "1.6", maxWidth: "500px", margin: "0 auto 20px" }}>
+        <h3 style={{ color: t.textStrong, fontSize: "22px", fontWeight: 700, marginBottom: "8px" }}>Source Connected</h3>
+        <p style={{ color: t.textMuted, fontSize: "14px", lineHeight: "1.6", maxWidth: "500px", margin: "0 auto 20px" }}>
           Your S3 bucket is connected to Fusion. You can now load documents, configure your RAG pipeline, and start querying.
         </p>
         <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
@@ -605,15 +612,15 @@ function DoneStep() {
             { label: "Configure RAG Pipeline", primary: false },
             { label: "View in Knowledge Hub", primary: false },
           ].map((btn) => (
-            <button key={btn.label} style={{ background: btn.primary ? "#1a4a2a" : "#111", border: `1px solid ${btn.primary ? "#3a9a5a" : "#333"}`, borderRadius: "6px", padding: "10px 20px", color: btn.primary ? "#fff" : "#aaa", cursor: "pointer", fontWeight: 600, fontSize: "13px" }}>
+            <button key={btn.label} style={{ background: btn.primary ? "#1a4a2a" : t.panelBg, border: `1px solid ${btn.primary ? "#3a9a5a" : t.borderMid}`, borderRadius: "6px", padding: "10px 20px", color: btn.primary ? t.textStrong : t.textDim, cursor: "pointer", fontWeight: 600, fontSize: "13px" }}>
               {btn.label}
             </button>
           ))}
         </div>
       </div>
 
-      <div style={{ background: "#0d0d0d", border: "1px solid #222", borderRadius: "8px", padding: "16px" }}>
-        <div style={{ color: "#666", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", marginBottom: "10px" }}>Connection Summary</div>
+      <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "16px" }}>
+        <div style={{ color: t.textMuted, fontSize: "10px", fontWeight: 700, textTransform: "uppercase", marginBottom: "10px" }}>Connection Summary</div>
         {[
           { label: "Source", value: "s3://fusion-data/ccb-risk/ccb-risk-exposures/" },
           { label: "Account", value: "987654321098" },
@@ -625,9 +632,9 @@ function DoneStep() {
           { label: "Objects Detected", value: "1,247" },
           { label: "Dataspace", value: "CCB Risk" },
         ].map((r) => (
-          <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid #111" }}>
-            <span style={{ color: "#777", fontSize: "12px" }}>{r.label}</span>
-            <span style={{ color: "#bbb", fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace", textAlign: "right", maxWidth: "60%" }}>{r.value}</span>
+          <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: `1px solid ${t.borderFaint}` }}>
+            <span style={{ color: t.textFaint, fontSize: "12px" }}>{r.label}</span>
+            <span style={{ color: t.text, fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace", textAlign: "right", maxWidth: "60%" }}>{r.value}</span>
           </div>
         ))}
       </div>
@@ -637,6 +644,7 @@ function DoneStep() {
 
 // ─── Main export (used as Step 2 of the outer workflow) ───
 export default function CredentialsStep() {
+  const { t } = useTheme();
   const [stepIndex, setStepIndex] = useState(0);
   const goNext = () => setStepIndex((i) => Math.min(i + 1, FLOW_STEPS.length - 1));
 

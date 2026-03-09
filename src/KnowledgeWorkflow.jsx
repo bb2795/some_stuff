@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { STEPS } from "./constants/steps";
 import { useAuth } from "./context/AuthContext";
+import { useTheme } from "./context/ThemeContext";
 import AuthGate from "./components/AuthGate";
 import StepIndicator from "./components/StepIndicator";
 import ConnectSourceStep from "./components/steps/ConnectSourceStep";
@@ -11,6 +12,7 @@ import DeployQueryStep from "./components/steps/DeployQueryStep";
 
 export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSource = null }) {
   const { user, setUser } = useAuth();
+  const { t, isDark, toggleTheme } = useTheme();
   const [stepIndex, setStepIndex] = useState(initialStep);
 
   if (!user) return <AuthGate />;
@@ -26,44 +28,48 @@ export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSour
   return (
     <div
       style={{
-        background: "#0d0d0d",
+        background: t.pageBg,
         minHeight: "100vh",
-        color: "#e0e0e0",
+        color: t.text,
         fontFamily: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       {/* Header */}
-      <div style={{ borderBottom: "1px solid #222", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ borderBottom: `1px solid ${t.border}`, padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: t.sidebarBg }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           {onBack && (
             <button onClick={onBack}
-              style={{ background: "transparent", border: "1px solid #2a2a2a", borderRadius: "6px", padding: "6px 12px", color: "#555", cursor: "pointer", fontSize: "12px" }}>
+              style={{ background: "transparent", border: `1px solid ${t.borderMid}`, borderRadius: "6px", padding: "6px 12px", color: t.textGhost, cursor: "pointer", fontSize: "12px" }}>
               ← Hub
             </button>
           )}
           <div>
             <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-              <span style={{ fontWeight: 700, fontSize: "22px", color: "#fff", letterSpacing: "-0.5px" }}>
+              <span style={{ fontWeight: 700, fontSize: "22px", color: t.textStrong, letterSpacing: "-0.5px" }}>
                 Knowledge on Fusion
               </span>
-              <span style={{ color: "#555", fontSize: "14px" }}>New KB Workflow</span>
+              <span style={{ color: t.textGhost, fontSize: "14px" }}>New KB Workflow</span>
             </div>
-            <div style={{ color: "#444", fontSize: "12px", marginTop: "4px" }}>
+            <div style={{ color: t.textDisabled, fontSize: "12px", marginTop: "4px" }}>
               Connect → Credential → Load → Configure → Query
             </div>
           </div>
         </div>
-        {/* User badge + logout */}
+        {/* User badge + theme toggle + logout */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ background: `${user.color}15`, border: `1px solid ${user.color}40`, borderRadius: "6px", padding: "6px 12px", display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ color: user.color, fontSize: "12px" }}>👤</span>
             <div>
               <div style={{ color: user.color, fontSize: "12px", fontWeight: 700 }}>{user.userid}</div>
-              <div style={{ color: "#555", fontSize: "10px" }}>{user.label}</div>
+              <div style={{ color: t.textGhost, fontSize: "10px" }}>{user.label}</div>
             </div>
           </div>
+          <button onClick={toggleTheme}
+            style={{ background: "transparent", border: `1px solid ${t.borderMid}`, borderRadius: "6px", padding: "6px 12px", color: t.textMuted, cursor: "pointer", fontSize: "12px" }}>
+            {isDark ? "☀" : "🌙"}
+          </button>
           <button onClick={() => setUser(null)}
-            style={{ background: "transparent", border: "1px solid #333", borderRadius: "6px", padding: "6px 12px", color: "#666", cursor: "pointer", fontSize: "12px" }}>
+            style={{ background: "transparent", border: `1px solid ${t.borderMid}`, borderRadius: "6px", padding: "6px 12px", color: t.textMuted, cursor: "pointer", fontSize: "12px" }}>
             Switch user
           </button>
         </div>
@@ -76,7 +82,7 @@ export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSour
         {/* Step title */}
         <h2
           style={{
-            color: "#fff",
+            color: t.textStrong,
             fontSize: "24px",
             fontWeight: 700,
             marginBottom: "4px",
@@ -88,7 +94,7 @@ export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSour
         <div
           style={{
             height: "1px",
-            background: "linear-gradient(to right, #3a7aba30, transparent)",
+            background: `linear-gradient(to right, ${t.blue}30, transparent)`,
             marginBottom: "20px",
           }}
         />
@@ -100,16 +106,16 @@ export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSour
         {currentStep === "deploy" && <DeployQueryStep />}
 
         {/* Prev / Next navigation */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "32px", paddingTop: "20px", borderTop: "1px solid #1a1a1a" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "32px", paddingTop: "20px", borderTop: `1px solid ${t.borderSubtle}` }}>
           <button
             onClick={goPrev}
             disabled={isFirst}
             style={{
-              background: isFirst ? "transparent" : "#111",
-              border: `1px solid ${isFirst ? "transparent" : "#333"}`,
+              background: isFirst ? "transparent" : t.panelBg,
+              border: `1px solid ${isFirst ? "transparent" : t.borderMid}`,
               borderRadius: "8px",
               padding: "10px 24px",
-              color: isFirst ? "transparent" : "#888",
+              color: isFirst ? "transparent" : t.textMuted,
               cursor: isFirst ? "default" : "pointer",
               fontWeight: 600,
               fontSize: "13px",
@@ -121,7 +127,7 @@ export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSour
             ← Previous
           </button>
 
-          <span style={{ color: "#444", fontSize: "12px", alignSelf: "center" }}>
+          <span style={{ color: t.textDisabled, fontSize: "12px", alignSelf: "center" }}>
             {stepIndex + 1} / {STEPS.length}
           </span>
 
@@ -129,11 +135,11 @@ export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSour
             onClick={goNext}
             disabled={isLast}
             style={{
-              background: isLast ? "#1a4a2a" : "#1a2a3a",
-              border: `1px solid ${isLast ? "#3a9a5a" : "#3a7aba"}`,
+              background: isLast ? t.greenTint : t.blueTint,
+              border: `1px solid ${isLast ? t.green : t.blue}`,
               borderRadius: "8px",
               padding: "10px 24px",
-              color: "#fff",
+              color: t.textStrong,
               cursor: isLast ? "default" : "pointer",
               fontWeight: 600,
               fontSize: "13px",

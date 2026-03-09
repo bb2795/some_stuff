@@ -1,14 +1,16 @@
 import { USERS, useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function AuthGate() {
   const { setUser } = useAuth();
+  const { t } = useTheme();
 
   return (
     <div
       style={{
-        background: "#0d0d0d",
+        background: t.pageBg,
         minHeight: "100vh",
-        color: "#e0e0e0",
+        color: t.text,
         fontFamily: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif",
         display: "flex",
         flexDirection: "column",
@@ -19,10 +21,10 @@ export default function AuthGate() {
     >
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <div style={{ fontWeight: 700, fontSize: "28px", color: "#fff", letterSpacing: "-0.5px", marginBottom: "8px" }}>
+        <div style={{ fontWeight: 700, fontSize: "28px", color: t.textStrong, letterSpacing: "-0.5px", marginBottom: "8px" }}>
           Knowledge on Fusion
         </div>
-        <div style={{ color: "#555", fontSize: "14px" }}>
+        <div style={{ color: t.textGhost, fontSize: "14px" }}>
           Select your identity to continue
         </div>
       </div>
@@ -34,7 +36,7 @@ export default function AuthGate() {
             key={u.userid}
             onClick={() => setUser(u)}
             style={{
-              background: "#0d0d0d",
+              background: t.cardBg,
               border: `2px solid ${u.color}40`,
               borderRadius: "12px",
               padding: "28px 32px",
@@ -49,7 +51,7 @@ export default function AuthGate() {
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.border = `2px solid ${u.color}40`;
-              e.currentTarget.style.background = "#0d0d0d";
+              e.currentTarget.style.background = t.cardBg;
             }}
           >
             {/* Avatar */}
@@ -70,7 +72,7 @@ export default function AuthGate() {
               👤
             </div>
 
-            <div style={{ color: "#fff", fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>
+            <div style={{ color: t.textStrong, fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>
               {u.userid}
             </div>
             <div style={{ color: u.color, fontSize: "12px", fontWeight: 500, marginBottom: "16px" }}>
@@ -78,13 +80,13 @@ export default function AuthGate() {
             </div>
 
             {/* Token */}
-            <div style={{ background: "#080808", border: "1px solid #1a1a1a", borderRadius: "6px", padding: "8px 10px" }}>
-              <div style={{ color: "#444", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", marginBottom: "3px" }}>
+            <div style={{ background: t.deepBg, border: `1px solid ${t.borderSubtle}`, borderRadius: "6px", padding: "8px 10px" }}>
+              <div style={{ color: t.textDisabled, fontSize: "9px", fontWeight: 700, textTransform: "uppercase", marginBottom: "3px" }}>
                 Auth Token
               </div>
               <div
                 style={{
-                  color: "#555",
+                  color: t.textGhost,
                   fontSize: "10px",
                   fontFamily: "'IBM Plex Mono', monospace",
                   overflow: "hidden",
@@ -119,18 +121,18 @@ export default function AuthGate() {
       {/* Entitlement note */}
       <div
         style={{
-          background: "#0a1520",
-          border: "1px solid #1a3a5a",
+          background: t.blueTint,
+          border: `1px solid ${t.blue}50`,
           borderRadius: "8px",
           padding: "14px 20px",
           maxWidth: "540px",
           textAlign: "center",
         }}
       >
-        <div style={{ color: "#3a7aba", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
+        <div style={{ color: t.blue, fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
           Entitlement Model
         </div>
-        <div style={{ color: "#6a8aaa", fontSize: "12px", lineHeight: "1.5" }}>
+        <div style={{ color: t.textDim, fontSize: "12px", lineHeight: "1.5" }}>
           Each user can upload and query their own documents. Cross-user document access is blocked — user1 cannot read or query user2's files, and vice versa.
         </div>
       </div>

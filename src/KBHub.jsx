@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
+import { useTheme } from "./context/ThemeContext";
 
 // ─── Theme tokens ──────────────────────────────────────────────────────────────
 const DARK = {
@@ -269,7 +270,7 @@ function NewKBTile({ t, onCreate }) {
 // ─── Main KBHub ───────────────────────────────────────────────────────────────
 export default function KBHub({ onCreateNew, onUploadDocs }) {
   const { user, setUser } = useAuth();
-  const [isDark, setIsDark] = useState(true);
+  const { isDark, toggleTheme } = useTheme();
   const [queryTarget, setQueryTarget] = useState(null);
   const [search, setSearch] = useState("");
 
@@ -312,7 +313,7 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
           </div>
 
           {/* Theme toggle */}
-          <button onClick={() => setIsDark((v) => !v)}
+          <button onClick={toggleTheme}
             style={{ width: "100%", background: t.toggleBg, border: `1px solid ${t.toggleBorder}`, borderRadius: "4px", padding: "5px 0", color: t.toggleText, cursor: "pointer", fontSize: "11px", marginBottom: "6px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
             {isDark ? "☀ Light mode" : "🌙 Dark mode"}
           </button>
