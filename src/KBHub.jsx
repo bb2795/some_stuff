@@ -1,7 +1,80 @@
 import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 
-// ─── KB catalog — owner controls who can "Make Knowledgebase" ─────────────────
+// ─── Theme tokens ──────────────────────────────────────────────────────────────
+const DARK = {
+  pageBg: "#0a0a0a", sidebarBg: "#080808", cardBg: "#0d0d0d",
+  topbarBg: "#080808",
+  border: "#222", borderSubtle: "#1a1a1a", borderHover: "#333",
+  text: "#e0e0e0", textStrong: "#ffffff", textMuted: "#555", textDim: "#888",
+  inputBg: "#111", inputBorder: "#2a2a2a",
+  statsBg: "#111", statsText: "#bbb",
+  tagBg: "18", chipBg: "#111", chipBorder: "#2a2a2a", chipText: "#666",
+  activeNav: "#1a2a3a", activeNavBorder: "#3a7aba",
+  btnPrimary: "#1a2a3a", btnPrimaryBorder: "#3a7aba", btnPrimaryText: "#fff",
+  btnSecondary: "#111", btnSecondaryBorder: "#2a2a2a", btnSecondaryText: "#888",
+  btnDisabledBg: "#111", btnDisabledBorder: "#222", btnDisabledText: "#444",
+  accessGrantedBg: "#0a2a0a", accessGrantedBorder: "#2a6a2a", accessGrantedText: "#3a9a5a",
+  noAccessBg: "#1a1a1a", noAccessBorder: "#2a2a2a", noAccessText: "#555",
+  ragBg: "#0a1a2a", ragBorder: "#1a3a5a", ragText: "#3a7aba",
+  pathBg: "#080808", pathBorder: "#1a1a1a", pathText: "#4a7a9a",
+  uploadBg: "#080808", uploadBorder: "#2a2a2a", uploadBorderHover: "#3a7aba",
+  uploadIcon: "#1a2a3a", uploadIconBorder: "#3a7aba", uploadIconColor: "#3a7aba",
+  uploadTitle: "#ccc", uploadSub: "#555",
+  noticeBg: "transparent",
+  modalBg: "#0d0d0d", modalBorder: "#2a2a2a", modalOverlay: "rgba(0,0,0,0.7)",
+  answerBg: "#080808", answerBorder: "#1a3a5a",
+  newTileBg: "#080808", newTileBgHover: "#0a1020",
+  newTileBorder: "#2a2a2a", newTileBorderHover: "#3a7aba",
+  newTileIcon: "#111", newTileIconHover: "#1a2a4a",
+  newTileIconBorder: "#2a2a2a", newTileIconBorderHover: "#3a7aba",
+  newTileIconColor: "#444", newTileIconColorHover: "#3a7aba",
+  newTileTitle: "#555", newTileTitleHover: "#ccc",
+  newTileSubText: "#444",
+  newTileBtn: "transparent", newTileBtnHover: "#1a2a3a",
+  newTileBtnBorder: "#2a2a2a", newTileBtnBorderHover: "#3a7aba",
+  newTileBtnText: "#444", newTileBtnTextHover: "#7aabea",
+  toggleBg: "#111", toggleBorder: "#2a2a2a", toggleText: "#888",
+  switchBorder: "#222",
+};
+
+const LIGHT = {
+  pageBg: "#f0f2f5", sidebarBg: "#ffffff", cardBg: "#ffffff",
+  topbarBg: "#ffffff",
+  border: "#e0e0e0", borderSubtle: "#eeeeee", borderHover: "#bbb",
+  text: "#333333", textStrong: "#111111", textMuted: "#888", textDim: "#666",
+  inputBg: "#f5f5f5", inputBorder: "#d0d0d0",
+  statsBg: "#f8f8f8", statsText: "#444",
+  tagBg: "18", chipBg: "#f0f0f0", chipBorder: "#ddd", chipText: "#666",
+  activeNav: "#e8f0fe", activeNavBorder: "#3a7aba",
+  btnPrimary: "#1a2a3a", btnPrimaryBorder: "#3a7aba", btnPrimaryText: "#fff",
+  btnSecondary: "#f5f5f5", btnSecondaryBorder: "#d0d0d0", btnSecondaryText: "#555",
+  btnDisabledBg: "#f0f0f0", btnDisabledBorder: "#ddd", btnDisabledText: "#aaa",
+  accessGrantedBg: "#f0faf0", accessGrantedBorder: "#a0d8a0", accessGrantedText: "#2a7a2a",
+  noAccessBg: "#f5f5f5", noAccessBorder: "#ddd", noAccessText: "#aaa",
+  ragBg: "#e8f0fe", ragBorder: "#a0b8e0", ragText: "#2a5a9a",
+  pathBg: "#f5f5f5", pathBorder: "#e0e0e0", pathText: "#3a6a8a",
+  uploadBg: "#fafafa", uploadBorder: "#d0d0d0", uploadBorderHover: "#3a7aba",
+  uploadIcon: "#e8f0fe", uploadIconBorder: "#a0b8e0", uploadIconColor: "#3a7aba",
+  uploadTitle: "#333", uploadSub: "#888",
+  noticeBg: "transparent",
+  modalBg: "#ffffff", modalBorder: "#d0d0d0", modalOverlay: "rgba(0,0,0,0.4)",
+  answerBg: "#f5f8ff", answerBorder: "#c0d0f0",
+  newTileBg: "#fafafa", newTileBgHover: "#f0f5ff",
+  newTileBorder: "#d0d0d0", newTileBorderHover: "#3a7aba",
+  newTileIcon: "#f0f0f0", newTileIconHover: "#e8f0fe",
+  newTileIconBorder: "#d0d0d0", newTileIconBorderHover: "#a0b8e0",
+  newTileIconColor: "#aaa", newTileIconColorHover: "#3a7aba",
+  newTileTitle: "#aaa", newTileTitleHover: "#333",
+  newTileSubText: "#aaa",
+  newTileBtn: "transparent", newTileBtnHover: "#e8f0fe",
+  newTileBtnBorder: "#d0d0d0", newTileBtnBorderHover: "#a0b8e0",
+  newTileBtnText: "#aaa", newTileBtnTextHover: "#3a7aba",
+  toggleBg: "#f0f0f0", toggleBorder: "#d0d0d0", toggleText: "#666",
+  switchBorder: "#e0e0e0",
+};
+
+// ─── KB catalog — owner controls who can query / make KB ──────────────────────
 const CATALOG = [
   {
     id: "ccb-risk",
@@ -27,183 +100,225 @@ const CATALOG = [
   },
 ];
 
-// ─── KB tile ───────────────────────────────────────────────────────────────────
-function KBTile({ item, canEdit, onMakeKB }) {
+// ─── Q&A dialog ───────────────────────────────────────────────────────────────
+function QueryDialog({ item, t, onClose }) {
+  const { user } = useAuth();
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [provider, setProvider] = useState("xai");
+
+  const handleAsk = async () => {
+    if (!question.trim()) return;
+    setLoading(true);
+    setAnswer(null);
+    try {
+      const res = await fetch("/v1/qa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-user-id": user.userid, authorization: `Bearer ${user.token}` },
+        body: JSON.stringify({ kb_name: item.name, question, provider }),
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      setAnswer(await res.json());
+    } catch (err) {
+      setAnswer({ answer: `Error: ${err.message}`, model: "—" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div style={{
-      background: "#0d0d0d", border: `1px solid ${canEdit ? "#2a3a2a" : "#222"}`,
-      borderRadius: "10px", display: "flex", flexDirection: "column", overflow: "hidden",
-      transition: "border-color 0.15s", opacity: canEdit ? 1 : 0.6,
-    }}
-      onMouseEnter={(e) => canEdit && (e.currentTarget.style.borderColor = "#3a5a3a")}
-      onMouseLeave={(e) => e.currentTarget.style.borderColor = canEdit ? "#2a3a2a" : "#222"}
-    >
-      {/* Header */}
-      <div style={{ padding: "14px 16px 10px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "6px" }}>
-          <span style={{
-            background: `${item.badgeColor}20`, border: `1px solid ${item.badgeColor}50`,
-            color: item.badgeColor, padding: "2px 7px", borderRadius: "4px",
-            fontSize: "10px", fontWeight: 700, flexShrink: 0, marginTop: "2px",
-          }}>{item.badge}</span>
-          <span style={{ color: "#fff", fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>{item.name}</span>
+    <div style={{ position: "fixed", inset: 0, background: t.modalOverlay, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
+      onClick={onClose}>
+      <div style={{ background: t.modalBg, border: `1px solid ${t.modalBorder}`, borderRadius: "12px", width: "640px", maxWidth: "90vw", padding: "28px" }}
+        onClick={(e) => e.stopPropagation()}>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+              <span style={{ background: `${item.badgeColor}20`, border: `1px solid ${item.badgeColor}50`, color: item.badgeColor, padding: "2px 7px", borderRadius: "4px", fontSize: "10px", fontWeight: 700 }}>{item.badge}</span>
+              <span style={{ color: t.textStrong, fontSize: "16px", fontWeight: 700 }}>{item.name}</span>
+              <span style={{ background: t.accessGrantedBg, border: `1px solid ${t.accessGrantedBorder}`, color: t.accessGrantedText, padding: "1px 6px", borderRadius: "3px", fontSize: "9px", fontWeight: 700 }}>LIVE</span>
+            </div>
+            <div style={{ color: t.textMuted, fontSize: "12px" }}>Query this knowledge base with natural language</div>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: t.textMuted, cursor: "pointer", fontSize: "18px", padding: "2px 6px" }}>✕</button>
         </div>
 
-        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "8px" }}>
-          {item.tags.map((t) => (
-            <span key={t.label} style={{
-              background: `${t.color}18`, border: `1px solid ${t.color}40`,
-              color: t.color, padding: "1px 6px", borderRadius: "3px", fontSize: "10px", fontWeight: 600,
-            }}>{t.label}</span>
+        {/* Provider toggle */}
+        <div style={{ display: "flex", gap: "6px", marginBottom: "14px" }}>
+          {[{ id: "xai", label: "Grok (xAI)" }, { id: "anthropic", label: "Claude" }].map((p) => (
+            <button key={p.id} onClick={() => setProvider(p.id)}
+              style={{ background: provider === p.id ? t.btnPrimary : t.inputBg, border: `1px solid ${provider === p.id ? t.btnPrimaryBorder : t.inputBorder}`, borderRadius: "6px", padding: "6px 14px", color: provider === p.id ? "#7aabea" : t.textMuted, cursor: "pointer", fontSize: "12px", fontWeight: 600 }}>
+              {p.label}
+            </button>
           ))}
         </div>
 
-        <div style={{
-          background: "#080808", border: "1px solid #1a1a1a", borderRadius: "4px",
-          padding: "5px 8px", fontFamily: "'IBM Plex Mono', monospace",
-          color: "#4a7a9a", fontSize: "10px", marginBottom: "8px",
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}>{item.path}</div>
+        <textarea value={question} onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Ask a question about this knowledge base..."
+          rows={3}
+          style={{ width: "100%", background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRadius: "6px", padding: "10px 12px", color: t.text, fontSize: "13px", resize: "vertical", fontFamily: "'IBM Plex Sans', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: "10px" }} />
 
-        <p style={{ color: "#888", fontSize: "11px", lineHeight: "1.5", margin: 0,
-          display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
-        }}>{item.desc}</p>
+        <button onClick={handleAsk} disabled={loading || !question.trim()}
+          style={{ width: "100%", background: loading ? t.inputBg : t.btnPrimary, border: `1px solid ${loading ? t.inputBorder : t.btnPrimaryBorder}`, borderRadius: "6px", padding: "10px", color: loading ? t.textMuted : "#fff", cursor: loading || !question.trim() ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "13px", marginBottom: "14px" }}>
+          {loading ? "Querying…" : "Ask"}
+        </button>
+
+        {answer && (
+          <div style={{ background: t.answerBg, border: `1px solid ${t.answerBorder}`, borderRadius: "8px", padding: "16px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+              <span style={{ color: "#3a7aba", fontSize: "11px", fontWeight: 700 }}>ANSWER</span>
+              {answer.model && <span style={{ background: t.ragBg, border: `1px solid ${t.ragBorder}`, color: t.ragText, padding: "1px 7px", borderRadius: "3px", fontSize: "10px" }}>{answer.model}</span>}
+            </div>
+            <div style={{ color: t.text, fontSize: "13px", lineHeight: "1.6", whiteSpace: "pre-wrap" }}>{answer.answer}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── KB tile ───────────────────────────────────────────────────────────────────
+function KBTile({ item, canEdit, t, onQuery }) {
+  return (
+    <div style={{
+      background: t.cardBg, border: `1px solid ${canEdit ? t.border : t.borderSubtle}`,
+      borderRadius: "10px", display: "flex", flexDirection: "column", overflow: "hidden",
+      transition: "border-color 0.15s", opacity: canEdit ? 1 : 0.55,
+    }}
+      onMouseEnter={(e) => canEdit && (e.currentTarget.style.borderColor = t.borderHover)}
+      onMouseLeave={(e) => e.currentTarget.style.borderColor = canEdit ? t.border : t.borderSubtle}
+    >
+      <div style={{ padding: "14px 16px 10px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "6px" }}>
+          <span style={{ background: `${item.badgeColor}20`, border: `1px solid ${item.badgeColor}50`, color: item.badgeColor, padding: "2px 7px", borderRadius: "4px", fontSize: "10px", fontWeight: 700, flexShrink: 0, marginTop: "2px" }}>{item.badge}</span>
+          <span style={{ color: t.textStrong, fontSize: "13px", fontWeight: 700, lineHeight: 1.3 }}>{item.name}</span>
+        </div>
+
+        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "8px" }}>
+          {item.tags.map((tag) => (
+            <span key={tag.label} style={{ background: `${tag.color}18`, border: `1px solid ${tag.color}40`, color: tag.color, padding: "1px 6px", borderRadius: "3px", fontSize: "10px", fontWeight: 600 }}>{tag.label}</span>
+          ))}
+        </div>
+
+        <div style={{ background: t.pathBg, border: `1px solid ${t.pathBorder}`, borderRadius: "4px", padding: "5px 8px", fontFamily: "'IBM Plex Mono', monospace", color: t.pathText, fontSize: "10px", marginBottom: "8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.path}</div>
+
+        <p style={{ color: t.textDim, fontSize: "11px", lineHeight: "1.5", margin: 0, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{item.desc}</p>
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderTop: `1px solid ${t.borderSubtle}`, borderBottom: `1px solid ${t.borderSubtle}` }}>
         {[["RECORDS", item.records], ["UPDATED", item.updated], ["REGION", item.region], ["CLASSIFICATION", item.classification]].map(([k, v]) => (
-          <div key={k} style={{ padding: "8px 12px", borderRight: k === "RECORDS" || k === "REGION" ? "1px solid #1a1a1a" : "none" }}>
-            <div style={{ color: "#444", fontSize: "9px", fontWeight: 700, marginBottom: "2px" }}>{k}</div>
-            <div style={{ color: "#bbb", fontSize: "11px", fontWeight: 600 }}>{v}</div>
+          <div key={k} style={{ padding: "8px 12px", background: t.statsBg, borderRight: k === "RECORDS" || k === "REGION" ? `1px solid ${t.borderSubtle}` : "none" }}>
+            <div style={{ color: t.textMuted, fontSize: "9px", fontWeight: 700, marginBottom: "2px" }}>{k}</div>
+            <div style={{ color: t.statsText, fontSize: "11px", fontWeight: 600 }}>{v}</div>
           </div>
         ))}
       </div>
 
       {/* Access + topics */}
-      <div style={{ padding: "10px 12px", borderBottom: "1px solid #1a1a1a", display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
-        <span style={{
-          background: canEdit ? "#0a2a0a" : "#1a1a1a",
-          border: `1px solid ${canEdit ? "#2a6a2a" : "#2a2a2a"}`,
-          color: canEdit ? "#3a9a5a" : "#555",
-          padding: "2px 7px", borderRadius: "3px", fontSize: "10px", fontWeight: 700,
-        }}>{canEdit ? "Access Granted" : "No Access"}</span>
-        <span style={{ background: "#0a1a2a", border: "1px solid #1a3a5a", color: "#3a7aba", padding: "2px 7px", borderRadius: "3px", fontSize: "10px", fontWeight: 600 }}>
-          RAG Pipeline
+      <div style={{ padding: "10px 12px", borderBottom: `1px solid ${t.borderSubtle}`, display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+        <span style={{ background: canEdit ? t.accessGrantedBg : t.noAccessBg, border: `1px solid ${canEdit ? t.accessGrantedBorder : t.noAccessBorder}`, color: canEdit ? t.accessGrantedText : t.noAccessText, padding: "2px 7px", borderRadius: "3px", fontSize: "10px", fontWeight: 700 }}>
+          {canEdit ? "Access Granted" : "No Access"}
         </span>
-        {item.topics.map((t) => (
-          <span key={t} style={{ background: "#111", border: "1px solid #2a2a2a", color: "#666", padding: "2px 6px", borderRadius: "3px", fontSize: "10px" }}>{t}</span>
+        <span style={{ background: t.ragBg, border: `1px solid ${t.ragBorder}`, color: t.ragText, padding: "2px 7px", borderRadius: "3px", fontSize: "10px", fontWeight: 600 }}>RAG Pipeline</span>
+        {item.topics.map((topic) => (
+          <span key={topic} style={{ background: t.chipBg, border: `1px solid ${t.chipBorder}`, color: t.chipText, padding: "2px 6px", borderRadius: "3px", fontSize: "10px" }}>{topic}</span>
         ))}
       </div>
 
       {/* Actions */}
       <div style={{ padding: "10px 12px", display: "flex", gap: "6px", marginTop: "auto" }}>
-        <button style={{ flex: 1, background: "#111", border: "1px solid #2a2a2a", borderRadius: "5px", padding: "7px 0", color: "#888", cursor: "pointer", fontSize: "11px", fontWeight: 600 }}>
-          Preview
-        </button>
+        <button style={{ flex: 1, background: t.btnSecondary, border: `1px solid ${t.btnSecondaryBorder}`, borderRadius: "5px", padding: "7px 0", color: t.btnSecondaryText, cursor: "pointer", fontSize: "11px", fontWeight: 600 }}>Preview</button>
         {canEdit ? (
-          <button onClick={onMakeKB}
-            style={{ flex: 2, background: "#111827", border: "1px solid #3a4a6a", borderRadius: "5px", padding: "7px 0", color: "#fff", cursor: "pointer", fontSize: "11px", fontWeight: 700 }}>
-            Make Knowledgebase
+          <button onClick={onQuery}
+            style={{ flex: 2, background: t.btnPrimary, border: `1px solid ${t.btnPrimaryBorder}`, borderRadius: "5px", padding: "7px 0", color: t.btnPrimaryText, cursor: "pointer", fontSize: "11px", fontWeight: 700 }}>
+            Query Docs
           </button>
         ) : (
           <button disabled
-            style={{ flex: 2, background: "#111", border: "1px solid #222", borderRadius: "5px", padding: "7px 0", color: "#444", cursor: "not-allowed", fontSize: "11px", fontWeight: 600 }}>
+            style={{ flex: 2, background: t.btnDisabledBg, border: `1px solid ${t.btnDisabledBorder}`, borderRadius: "5px", padding: "7px 0", color: t.btnDisabledText, cursor: "not-allowed", fontSize: "11px" }}>
             No Access
           </button>
         )}
-        <button style={{ flex: 1, background: "#111", border: "1px solid #2a2a2a", borderRadius: "5px", padding: "7px 0", color: "#666", cursor: "pointer", fontSize: "11px" }}>
-          Advanced Config
-        </button>
+        <button style={{ flex: 1, background: t.btnSecondary, border: `1px solid ${t.btnSecondaryBorder}`, borderRadius: "5px", padding: "7px 0", color: t.textMuted, cursor: "pointer", fontSize: "11px" }}>Config</button>
       </div>
     </div>
   );
 }
 
 // ─── "Untitled (New)" create tile ─────────────────────────────────────────────
-function NewKBTile({ onCreate }) {
+function NewKBTile({ t, onCreate }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <div
-      onClick={onCreate}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: hovered ? "#0a1020" : "#080808",
-        border: `1px dashed ${hovered ? "#3a7aba" : "#2a2a2a"}`,
-        borderRadius: "10px", display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        minHeight: "280px", cursor: "pointer", transition: "all 0.15s",
-        gap: "14px", padding: "28px",
-      }}
-    >
-      <div style={{
-        width: "48px", height: "48px", borderRadius: "50%",
-        background: hovered ? "#1a2a4a" : "#111",
-        border: `1px solid ${hovered ? "#3a7aba" : "#2a2a2a"}`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: "24px", color: hovered ? "#3a7aba" : "#444",
-        transition: "all 0.15s",
-      }}>+</div>
+    <div onClick={onCreate} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ background: hovered ? t.newTileBgHover : t.newTileBg, border: `1px dashed ${hovered ? t.newTileBorderHover : t.newTileBorder}`, borderRadius: "10px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "280px", cursor: "pointer", transition: "all 0.15s", gap: "14px", padding: "28px" }}>
+      <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: hovered ? t.newTileIconHover : t.newTileIcon, border: `1px solid ${hovered ? t.newTileIconBorderHover : t.newTileIconBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", color: hovered ? t.newTileIconColorHover : t.newTileIconColor, transition: "all 0.15s" }}>+</div>
       <div style={{ textAlign: "center" }}>
-        <div style={{ color: hovered ? "#ccc" : "#555", fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>Untitled (New)</div>
-        <div style={{ color: "#444", fontSize: "11px", lineHeight: "1.5" }}>Start the KB creation workflow —<br />connect a source, load docs, configure RAG</div>
+        <div style={{ color: hovered ? t.newTileTitleHover : t.newTileTitle, fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>Untitled (New)</div>
+        <div style={{ color: t.newTileSubText, fontSize: "11px", lineHeight: "1.5" }}>Start the KB creation workflow —<br />connect a source, load docs, configure RAG</div>
       </div>
-      <div style={{
-        background: hovered ? "#1a2a3a" : "transparent",
-        border: `1px solid ${hovered ? "#3a7aba" : "#2a2a2a"}`,
-        borderRadius: "6px", padding: "7px 18px",
-        color: hovered ? "#7aabea" : "#444", fontSize: "12px", fontWeight: 700,
-        transition: "all 0.15s",
-      }}>
+      <div style={{ background: hovered ? t.newTileBtnHover : t.newTileBtn, border: `1px solid ${hovered ? t.newTileBtnBorderHover : t.newTileBtnBorder}`, borderRadius: "6px", padding: "7px 18px", color: hovered ? t.newTileBtnTextHover : t.newTileBtnText, fontSize: "12px", fontWeight: 700, transition: "all 0.15s" }}>
         Create New KB →
       </div>
     </div>
   );
 }
 
-// ─── Main KBHub component ──────────────────────────────────────────────────────
+// ─── Main KBHub ───────────────────────────────────────────────────────────────
 export default function KBHub({ onCreateNew, onUploadDocs }) {
   const { user, setUser } = useAuth();
+  const [isDark, setIsDark] = useState(true);
+  const [queryTarget, setQueryTarget] = useState(null);
   const [search, setSearch] = useState("");
 
   if (!user) return null;
+
+  const t = isDark ? DARK : LIGHT;
 
   const filtered = CATALOG.filter(
     (d) =>
       d.name.toLowerCase().includes(search.toLowerCase()) ||
       d.desc.toLowerCase().includes(search.toLowerCase()) ||
-      d.topics.some((t) => t.toLowerCase().includes(search.toLowerCase()))
+      d.topics.some((topic) => topic.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#0a0a0a", color: "#e0e0e0", fontFamily: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif", overflow: "hidden" }}>
+    <div style={{ display: "flex", height: "100vh", background: t.pageBg, color: t.text, fontFamily: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif", overflow: "hidden" }}>
 
       {/* ── Left Sidebar ── */}
-      <div style={{ width: "200px", flexShrink: 0, background: "#080808", borderRight: "1px solid #1a1a1a", display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "20px 18px 14px", borderBottom: "1px solid #1a1a1a" }}>
-          <div style={{ fontWeight: 800, fontSize: "15px", color: "#fff", letterSpacing: "-0.5px" }}>Knowledge</div>
-          <div style={{ color: "#444", fontSize: "11px" }}>on Fusion</div>
+      <div style={{ width: "200px", flexShrink: 0, background: t.sidebarBg, borderRight: `1px solid ${t.border}`, display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: "20px 18px 14px", borderBottom: `1px solid ${t.border}` }}>
+          <div style={{ fontWeight: 800, fontSize: "15px", color: t.textStrong, letterSpacing: "-0.5px" }}>Knowledge</div>
+          <div style={{ color: t.textMuted, fontSize: "11px" }}>on Fusion</div>
         </div>
 
         <nav style={{ flex: 1, padding: "10px 0" }}>
-          <div style={{ background: "#1a2a3a", borderLeft: "2px solid #3a7aba", padding: "9px 18px", color: "#fff" }}>
+          <div style={{ background: t.activeNav, borderLeft: `2px solid ${t.activeNavBorder}`, padding: "9px 18px", color: t.textStrong }}>
             <div style={{ fontSize: "13px", fontWeight: 700 }}>Knowledge</div>
           </div>
         </nav>
 
-        <div style={{ borderTop: "1px solid #1a1a1a", padding: "12px 18px" }}>
+        <div style={{ borderTop: `1px solid ${t.switchBorder}`, padding: "12px 18px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
             <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: `${user.color}20`, border: `1px solid ${user.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", color: user.color, fontWeight: 700, flexShrink: 0 }}>
               {user.userid.slice(0, 1).toUpperCase()}
             </div>
             <div>
               <div style={{ fontSize: "11px", fontWeight: 700, color: user.color }}>{user.userid}</div>
-              <div style={{ fontSize: "10px", color: "#444" }}>{user.label}</div>
+              <div style={{ fontSize: "10px", color: t.textMuted }}>{user.label}</div>
             </div>
           </div>
+
+          {/* Theme toggle */}
+          <button onClick={() => setIsDark((v) => !v)}
+            style={{ width: "100%", background: t.toggleBg, border: `1px solid ${t.toggleBorder}`, borderRadius: "4px", padding: "5px 0", color: t.toggleText, cursor: "pointer", fontSize: "11px", marginBottom: "6px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+            {isDark ? "☀ Light mode" : "🌙 Dark mode"}
+          </button>
+
           <button onClick={() => setUser(null)}
-            style={{ width: "100%", background: "transparent", border: "1px solid #222", borderRadius: "4px", padding: "5px 0", color: "#555", cursor: "pointer", fontSize: "11px" }}>
+            style={{ width: "100%", background: "transparent", border: `1px solid ${t.switchBorder}`, borderRadius: "4px", padding: "5px 0", color: t.textMuted, cursor: "pointer", fontSize: "11px" }}>
             Switch user
           </button>
         </div>
@@ -212,20 +327,17 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
       {/* ── Main content ── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Top bar */}
-        <div style={{ padding: "18px 28px 14px", borderBottom: "1px solid #1a1a1a", flexShrink: 0 }}>
+        <div style={{ padding: "18px 28px 14px", borderBottom: `1px solid ${t.border}`, background: t.topbarBg, flexShrink: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>Knowledge</h1>
-              <div style={{ color: "#555", fontSize: "13px", marginTop: "2px" }}>Your knowledge bases &amp; datasets</div>
+              <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800, color: t.textStrong, letterSpacing: "-0.5px" }}>Knowledge</h1>
+              <div style={{ color: t.textMuted, fontSize: "13px", marginTop: "2px" }}>Your knowledge bases &amp; datasets</div>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <input
-                value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search datasets..."
-                style={{ background: "#111", border: "1px solid #2a2a2a", borderRadius: "6px", padding: "8px 14px", color: "#ccc", fontSize: "13px", outline: "none", width: "200px", fontFamily: "'IBM Plex Sans', sans-serif" }}
-              />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search datasets..."
+                style={{ background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRadius: "6px", padding: "8px 14px", color: t.text, fontSize: "13px", outline: "none", width: "200px", fontFamily: "'IBM Plex Sans', sans-serif" }} />
               <button onClick={onCreateNew}
-                style={{ background: "#1a2a3a", border: "1px solid #3a7aba", borderRadius: "6px", padding: "8px 18px", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap" }}>
+                style={{ background: t.btnPrimary, border: `1px solid ${t.btnPrimaryBorder}`, borderRadius: "6px", padding: "8px 18px", color: t.btnPrimaryText, cursor: "pointer", fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap" }}>
                 + Create New KB
               </button>
             </div>
@@ -235,41 +347,35 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
         {/* Scrollable content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
           {/* Upload strip */}
-          <div
-            onClick={onUploadDocs}
-            style={{ border: "1px dashed #2a2a2a", borderRadius: "8px", padding: "14px 20px", marginBottom: "28px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", background: "#080808", transition: "border-color 0.15s" }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = "#3a7aba"}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = "#2a2a2a"}
-          >
-            <span style={{ width: "28px", height: "28px", background: "#1a2a3a", border: "1px solid #3a7aba", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#3a7aba", fontSize: "16px", flexShrink: 0 }}>+</span>
+          <div onClick={onUploadDocs}
+            style={{ border: `1px dashed ${t.uploadBorder}`, borderRadius: "8px", padding: "14px 20px", marginBottom: "28px", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", background: t.uploadBg, transition: "border-color 0.15s" }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = t.uploadBorderHover}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = t.uploadBorder}>
+            <span style={{ width: "28px", height: "28px", background: t.uploadIcon, border: `1px solid ${t.uploadIconBorder}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: t.uploadIconColor, fontSize: "16px", flexShrink: 0 }}>+</span>
             <div>
-              <div style={{ color: "#ccc", fontSize: "13px", fontWeight: 600 }}>Upload documents to create S3 dataset</div>
-              <div style={{ color: "#555", fontSize: "11px" }}>Drop files here or click to browse. Supports PDF, CSV, JSON, TXT, MD, DOCX, XLSX, Parquet</div>
+              <div style={{ color: t.uploadTitle, fontSize: "13px", fontWeight: 600 }}>Upload documents to create S3 dataset</div>
+              <div style={{ color: t.uploadSub, fontSize: "11px" }}>Drop files here or click to browse. Supports PDF, CSV, JSON, TXT, MD, DOCX, XLSX, Parquet</div>
             </div>
           </div>
 
           {/* Entitlement notice */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-            <div style={{ color: "#555", fontSize: "12px" }}>
-              Showing datasets for <span style={{ color: user.color, fontWeight: 700 }}>{user.userid}</span>
-              <span style={{ color: "#444" }}> · You can create knowledge bases only from datasets you own</span>
-            </div>
+          <div style={{ color: t.textMuted, fontSize: "12px", marginBottom: "16px" }}>
+            Showing datasets for <span style={{ color: user.color, fontWeight: 700 }}>{user.userid}</span>
+            <span style={{ color: t.textMuted }}> · You can query datasets you own · others show No Access</span>
           </div>
 
-          {/* 3-column grid: 2 catalog tiles + 1 "new" tile */}
+          {/* 3-column grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
             {filtered.map((item) => (
-              <KBTile
-                key={item.id}
-                item={item}
-                canEdit={item.owner === user.userid}
-                onMakeKB={onCreateNew}
-              />
+              <KBTile key={item.id} item={item} canEdit={item.owner === user.userid} t={t}
+                onQuery={() => setQueryTarget(item)} />
             ))}
-            <NewKBTile onCreate={onCreateNew} />
+            <NewKBTile t={t} onCreate={onCreateNew} />
           </div>
         </div>
       </div>
+
+      {queryTarget && <QueryDialog item={queryTarget} t={t} onClose={() => setQueryTarget(null)} />}
     </div>
   );
 }
