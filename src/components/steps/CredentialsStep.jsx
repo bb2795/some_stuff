@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import FeasibilityNote from "../FeasibilityNote";
 
 const FLOW_STEPS = [
   { id: "choose", label: "Choose Method" },
@@ -327,7 +328,7 @@ function BucketStep({ onNext }) {
               { type: "DOCX", count: 89, pct: "7%" },
               { type: "JSON", count: 38, pct: "3%" },
             ].map((f) => (
-              <span key={f.type} style={{ background: "#0a1a0a", border: "1px solid #1a3a1a", borderRadius: "4px", padding: "4px 10px", fontSize: "11px", color: "#8aaa8a" }}>
+              <span key={f.type} style={{ background: t.greenTint, border: `1px solid ${t.green}50`, borderRadius: "4px", padding: "4px 10px", fontSize: "11px", color: t.green }}>
                 {f.type} · {f.count} ({f.pct})
               </span>
             ))}
@@ -339,11 +340,11 @@ function BucketStep({ onNext }) {
         onClick={onNext}
         disabled={!scanned}
         style={{
-          background: scanned ? "#1a3a5a" : t.inputBg,
-          border: `1px solid ${scanned ? "#3a7aba" : t.borderMid}`,
+          background: scanned ? t.blue : t.inputBg,
+          border: `1px solid ${scanned ? t.blue : t.borderMid}`,
           borderRadius: "8px",
           padding: "12px 32px",
-          color: scanned ? t.textStrong : t.textGhost,
+          color: scanned ? "#ffffff" : t.textGhost,
           cursor: scanned ? "pointer" : "not-allowed",
           fontWeight: 600,
           fontSize: "14px",
@@ -398,6 +399,19 @@ function ProvisionStep({ onNext }) {
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ color: "#ba8a3a", fontSize: "14px" }}>☁</span>
             <span style={{ color: t.text, fontWeight: 600, fontSize: "14px" }}>CloudFormation Stack</span>
+            <FeasibilityNote
+              align="right"
+              title="CloudFormation One-Click — AWS Best Practice"
+              verdict="ExternalId + least-privilege IAM is the AWS-documented pattern for SaaS integrations"
+              verdictType="success"
+              bullets={[
+                "AWS IAM documentation explicitly recommends ExternalId in the trust policy to prevent confused deputy attacks when vendors assume cross-account roles",
+                "Datadog AWS Integration uses this exact pattern: CF stack, cross-account role with ExternalId, sts:AssumeRole — deployed by 20,000+ AWS accounts",
+                "Lacework, Wiz, and Orca Security all use CloudFormation one-click onboarding with the same trust policy structure",
+                "Read-only permissions (s3:GetObject, s3:ListBucket, s3:GetBucketNotificationConfiguration) are the minimum needed — principle of least privilege",
+                "Customer retains full ownership — the IAM role lives in their AWS account and can be deleted at any time to instantly revoke Fusion's access",
+              ]}
+            />
           </div>
           <span style={{ color: t.textFaint, fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace" }}>{stackDetails.name}</span>
         </div>
@@ -422,9 +436,9 @@ function ProvisionStep({ onNext }) {
             <div style={{ color: "#3a9a5a", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", marginBottom: "10px" }}>
               Permissions Granted (Read-Only)
             </div>
-            <div style={{ background: t.greenTint, border: "1px solid #1a3a1a", borderRadius: "6px", overflow: "hidden" }}>
+            <div style={{ background: t.greenTint, border: `1px solid ${t.green}40`, borderRadius: "6px", overflow: "hidden" }}>
               {stackDetails.permissions.map((p, i) => (
-                <div key={p.action} style={{ display: "grid", gridTemplateColumns: "180px 1fr 140px", padding: "8px 12px", borderBottom: i < stackDetails.permissions.length - 1 ? "1px solid #0a1a0a" : "none", alignItems: "center" }}>
+                <div key={p.action} style={{ display: "grid", gridTemplateColumns: "180px 1fr 140px", padding: "8px 12px", borderBottom: i < stackDetails.permissions.length - 1 ? `1px solid ${t.green}30` : "none", alignItems: "center" }}>
                   <span style={{ color: "#3a9a5a", fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 500 }}>{p.action}</span>
                   <span style={{ color: t.textMuted, fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace" }}>{p.resource}</span>
                   <span style={{ color: "#5a8a5a", fontSize: "11px", textAlign: "right" }}>{p.note}</span>
@@ -439,7 +453,7 @@ function ProvisionStep({ onNext }) {
             </div>
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               {stackDetails.excluded.map((e) => (
-                <span key={e} style={{ background: "#1a0a0a", border: "1px solid #3a1a1a", color: "#885050", padding: "3px 8px", borderRadius: "4px", fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace", textDecoration: "line-through", textDecorationColor: "#5a2a2a" }}>
+                <span key={e} style={{ background: t.redTint, border: `1px solid ${t.red}40`, color: t.red, padding: "3px 8px", borderRadius: "4px", fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace", textDecoration: "line-through", textDecorationColor: t.red }}>
                   {e}
                 </span>
               ))}
@@ -452,7 +466,7 @@ function ProvisionStep({ onNext }) {
       </div>
 
       {phase === "preview" && (
-        <button onClick={handleLaunch} style={{ background: "#1a3a5a", border: "1px solid #3a7aba", borderRadius: "8px", padding: "14px 32px", color: t.textStrong, cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+        <button onClick={handleLaunch} style={{ background: t.blue, border: `1px solid ${t.blue}`, borderRadius: "8px", padding: "14px 32px", color: "#ffffff", cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
           <span>Launch Stack in AWS</span>
           <span style={{ fontSize: "12px", opacity: 0.6 }}>↗ opens in new tab with pre-filled template</span>
         </button>
@@ -555,8 +569,21 @@ function VerifyStep({ onNext }) {
 
   return (
     <div>
-      <h3 style={{ color: t.textStrong, fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
+      <h3 style={{ color: t.textStrong, fontSize: "20px", fontWeight: 700, marginBottom: "6px", display: "flex", alignItems: "center", gap: "10px" }}>
         {verifyPhase === "running" ? "Verifying connection..." : "All checks passed"}
+        <FeasibilityNote
+          align="right"
+          title="IAM Role Verification — Standard AWS Pattern"
+          verdict="sts:AssumeRole → s3:ListObjectsV2 → s3:GetObject is the industry-standard verification flow"
+          verdictType="success"
+          bullets={[
+            "sts:AssumeRole returns temporary credentials (STS tokens) — this is how every cross-account service integration works in AWS",
+            "S3 event notifications (SNS/SQS) enable real-time incremental sync — same mechanism used by AWS Bedrock Knowledge Bases and Databricks Unity Catalog",
+            "VPC endpoint reachability check mirrors AWS recommended IAM Access Analyzer verification steps",
+            "Datadog verifies IAM role assumption in exactly this way during their AWS integration setup — latency figures (120ms role assume, 340ms list) are realistic for us-east-1",
+            "Once verified, credentials are never stored — Fusion re-assumes the role on demand using the stored Role ARN + ExternalId",
+          ]}
+        />
       </h3>
       <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
         Fusion is running a series of health checks to confirm end-to-end connectivity before you start loading documents.

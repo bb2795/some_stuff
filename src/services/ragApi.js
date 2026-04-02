@@ -45,6 +45,15 @@ export async function listFiles(user) {
   return all.filter((f) => (f.owner ?? f.owneruserid) === user.userid);
 }
 
+// Delete a file by id
+export async function deleteFile(user, fileId) {
+  const res = await fetch(`${BASE}/files/${fileId}`, {
+    method: "DELETE",
+    headers: authHeaders(user),
+  });
+  if (!res.ok) throw new Error(`Delete failed (${res.status}): ${await res.text()}`);
+}
+
 // Q&A — only callable on files owned by the current user (enforced by listFiles above)
 export async function queryFile(user, fileId, question, provider = "xai") {
   const res = await fetch(`${BASE}/qa`, {

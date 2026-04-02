@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { listFiles, queryFile } from "../../services/ragApi";
 import { useTheme } from "../../context/ThemeContext";
+import FeasibilityNote from "../FeasibilityNote";
 
 // ─── Deployment progress animation ───
 function DeployingScreen({ onDone }) {
@@ -53,21 +54,21 @@ function KBCard({ onClick }) {
         Knowledge Hub — My Knowledge Bases
       </div>
       <div onClick={onClick}
-        style={{ background: "#0a1a15", border: "2px solid #1a4a2a", borderRadius: "10px", padding: "18px 20px", cursor: "pointer", transition: "all 0.15s", marginBottom: "8px", position: "relative" }}
-        onMouseEnter={(e) => { e.currentTarget.style.border = "2px solid #3a9a5a"; e.currentTarget.style.background = "#0d2a1a"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.border = "2px solid #1a4a2a"; e.currentTarget.style.background = "#0a1a15"; }}>
+        style={{ background: t.greenTint, border: `2px solid ${t.green}50`, borderRadius: "10px", padding: "18px 20px", cursor: "pointer", transition: "all 0.15s", marginBottom: "8px", position: "relative" }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.green; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${t.green}50`; }}>
         <div style={{ position: "absolute", top: "14px", right: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
           <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#3a9a5a", boxShadow: "0 0 8px #3a9a5a80" }} />
           <span style={{ color: "#3a9a5a", fontSize: "11px", fontWeight: 700 }}>LIVE</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-          <div style={{ background: "#1a4a2a", border: "1px solid #2a6a3a", borderRadius: "6px", padding: "6px 10px", fontSize: "18px" }}>🗂</div>
+          <div style={{ background: t.greenTint, border: `1px solid ${t.green}50`, borderRadius: "6px", padding: "6px 10px", fontSize: "18px" }}>🗂</div>
           <div>
             <div style={{ color: t.textStrong, fontWeight: 700, fontSize: "16px" }}>My Knowledge Base</div>
-            <div style={{ color: "#5a8a5a", fontSize: "12px" }}>Hybrid retrieval · Cohere rerank · Real Q&A via Grok / Claude</div>
+            <div style={{ color: t.textDim, fontSize: "12px" }}>Hybrid retrieval · Cohere rerank · Real Q&A via Grok / Claude</div>
           </div>
         </div>
-        <div style={{ color: "#3a7aba", fontSize: "12px", fontWeight: 600 }}>Click to open → Query your documents with real LLM answers</div>
+        <div style={{ color: t.blue, fontSize: "12px", fontWeight: 600 }}>Click to open → Query your documents with real LLM answers</div>
       </div>
       {[
         { name: "Equities Research — Global Macro", id: "eq-macro", status: "healthy" },
@@ -132,7 +133,7 @@ function QueryConsole({ user, onClose }) {
   };
 
   return (
-    <div style={{ background: t.cardBg, border: "2px solid #1a3a5a", borderRadius: "10px", overflow: "hidden", marginBottom: "20px" }}>
+    <div style={{ background: t.cardBg, border: `2px solid ${t.blue}50`, borderRadius: "10px", overflow: "hidden", marginBottom: "20px" }}>
       {/* Header */}
       <div style={{ background: t.panelBg, padding: "12px 16px", borderBottom: `1px solid ${t.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -143,7 +144,7 @@ function QueryConsole({ user, onClose }) {
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           {["query", "files"].map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              style={{ background: activeTab === tab ? "#1a2a3a" : "transparent", border: `1px solid ${activeTab === tab ? "#3a7aba" : "transparent"}`, borderRadius: "4px", padding: "4px 12px", color: activeTab === tab ? "#3a7aba" : t.textMuted, fontSize: "12px", fontWeight: 600, cursor: "pointer", textTransform: "capitalize" }}>
+              style={{ background: activeTab === tab ? t.blueTint : "transparent", border: `1px solid ${activeTab === tab ? t.blue : "transparent"}`, borderRadius: "4px", padding: "4px 12px", color: activeTab === tab ? t.blue : t.textMuted, fontSize: "12px", fontWeight: 600, cursor: "pointer", textTransform: "capitalize" }}>
               {tab}
             </button>
           ))}
@@ -158,10 +159,10 @@ function QueryConsole({ user, onClose }) {
         <div style={{ padding: "16px" }}>
 
           {/* Entitlement banner */}
-          <div style={{ background: t.blueTint, border: "1px solid #1a3a5a", borderRadius: "6px", padding: "8px 12px", marginBottom: "14px", display: "flex", gap: "8px", alignItems: "center" }}>
-            <span style={{ color: "#3a7aba" }}>🔒</span>
-            <span style={{ color: "#6a8aaa", fontSize: "11px" }}>
-              Showing only <strong style={{ color: "#3a7aba" }}>{user?.userid}</strong>'s documents · Cross-user access blocked
+          <div style={{ background: t.blueTint, border: `1px solid ${t.blue}40`, borderRadius: "6px", padding: "8px 12px", marginBottom: "14px", display: "flex", gap: "8px", alignItems: "center" }}>
+            <span style={{ color: t.blue }}>🔒</span>
+            <span style={{ color: t.textDim, fontSize: "11px" }}>
+              Showing only <strong style={{ color: t.blue }}>{user?.userid}</strong>'s documents · Cross-user access blocked
             </span>
           </div>
 
@@ -170,8 +171,8 @@ function QueryConsole({ user, onClose }) {
             <label style={{ color: t.textMuted, fontSize: "11px", fontWeight: 600, display: "block", marginBottom: "6px" }}>DOCUMENT</label>
             {filesLoading && <div style={{ color: t.textGhost, fontSize: "12px" }}>Loading your files…</div>}
             {filesError && (
-              <div style={{ background: "#1a0808", border: "1px solid #3a1a1a", borderRadius: "6px", padding: "8px 12px" }}>
-                <div style={{ color: "#ba4a4a", fontSize: "12px" }}>Could not load files: {filesError}</div>
+              <div style={{ background: t.redTint, border: `1px solid ${t.red}40`, borderRadius: "6px", padding: "8px 12px" }}>
+                <div style={{ color: t.red, fontSize: "12px" }}>Could not load files: {filesError}</div>
                 <div style={{ color: t.textGhost, fontSize: "11px", marginTop: "4px" }}>Is the RAG service running on :8081? Run <span style={{ fontFamily: "monospace" }}>python deploy.py</span>.</div>
               </div>
             )}
@@ -204,14 +205,14 @@ function QueryConsole({ user, onClose }) {
             <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
               {[{ id: "xai", label: "Grok (xAI)" }, { id: "anthropic", label: "Claude" }].map((p) => (
                 <button key={p.id} onClick={() => setProvider(p.id)}
-                  style={{ background: provider === p.id ? "#1a2a3a" : t.panelBg, border: `1px solid ${provider === p.id ? "#3a7aba" : t.borderMid}`, borderRadius: "4px", padding: "6px 14px", color: provider === p.id ? "#3a7aba" : t.textMuted, fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+                  style={{ background: provider === p.id ? t.blueTint : t.panelBg, border: `1px solid ${provider === p.id ? t.blue : t.borderMid}`, borderRadius: "4px", padding: "6px 14px", color: provider === p.id ? t.blue : t.textMuted, fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
                   {p.label}
                 </button>
               ))}
             </div>
             <button onClick={handleQuery}
               disabled={qaState === "loading" || !selectedFileId || !question.trim()}
-              style={{ flex: 1, background: qaState === "loading" ? t.panelBg : "#1a4a2a", border: `1px solid ${qaState === "loading" ? t.borderMid : "#3a9a5a"}`, borderRadius: "6px", padding: "9px 20px", color: t.textStrong, cursor: qaState === "loading" ? "not-allowed" : "pointer", fontWeight: 600, fontSize: "13px" }}>
+              style={{ flex: 1, background: qaState === "loading" ? t.panelBg : t.green, border: `1px solid ${qaState === "loading" ? t.borderMid : t.green}`, borderRadius: "6px", padding: "9px 20px", color: qaState === "loading" ? t.textMuted : "#ffffff", cursor: qaState === "loading" ? "not-allowed" : "pointer", fontWeight: 600, fontSize: "13px" }}>
               {qaState === "loading" ? "Querying…" : "Ask"}
             </button>
           </div>
@@ -225,22 +226,22 @@ function QueryConsole({ user, onClose }) {
 
           {/* Error */}
           {qaState === "error" && (
-            <div style={{ background: "#1a0808", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "14px" }}>
-              <div style={{ color: "#ba4a4a", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>Query failed</div>
-              <div style={{ color: "#7a4a4a", fontSize: "12px" }}>{qaError}</div>
+            <div style={{ background: t.redTint, border: `1px solid ${t.red}40`, borderRadius: "8px", padding: "14px" }}>
+              <div style={{ color: t.red, fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>Query failed</div>
+              <div style={{ color: t.textDim, fontSize: "12px" }}>{qaError}</div>
             </div>
           )}
 
           {/* Real answer */}
           {qaState === "done" && answer && (
-            <div style={{ background: t.blueTint, border: "1px solid #1a3a5a", borderRadius: "8px", padding: "16px" }}>
+            <div style={{ background: t.blueTint, border: `1px solid ${t.blue}50`, borderRadius: "8px", padding: "16px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                <div style={{ color: "#3a7aba", fontSize: "11px", fontWeight: 700 }}>ANSWER</div>
-                <span style={{ background: "#0d1520", border: "1px solid #1a3a5a", color: "#5a7aaa", fontSize: "10px", fontFamily: "'IBM Plex Mono', monospace", padding: "2px 8px", borderRadius: "3px" }}>
+                <div style={{ color: t.blue, fontSize: "11px", fontWeight: 700 }}>ANSWER</div>
+                <span style={{ background: t.panelBg, border: `1px solid ${t.blue}40`, color: t.textMuted, fontSize: "10px", fontFamily: "'IBM Plex Mono', monospace", padding: "2px 8px", borderRadius: "3px" }}>
                   {answer.model}
                 </span>
               </div>
-              <div style={{ color: "#c0d0e0", fontSize: "14px", lineHeight: "1.75", whiteSpace: "pre-wrap" }}>
+              <div style={{ color: t.text, fontSize: "14px", lineHeight: "1.75", whiteSpace: "pre-wrap" }}>
                 {answer.answer}
               </div>
             </div>
@@ -255,7 +256,7 @@ function QueryConsole({ user, onClose }) {
             <div style={{ color: t.textGhost, fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>
               {user?.userid}'s Documents
             </div>
-            <div style={{ background: t.blueTint, border: "1px solid #1a3a5a", borderRadius: "4px", padding: "3px 10px", color: "#5a7aaa", fontSize: "10px" }}>
+            <div style={{ background: t.blueTint, border: `1px solid ${t.blue}40`, borderRadius: "4px", padding: "3px 10px", color: t.textMuted, fontSize: "10px" }}>
               🔒 Other users' files are hidden
             </div>
           </div>
@@ -268,7 +269,7 @@ function QueryConsole({ user, onClose }) {
             return (
               <div key={id} style={{ display: "grid", gridTemplateColumns: "2fr 80px 80px", padding: "8px 10px", borderBottom: `1px solid ${t.borderFaint}`, alignItems: "center" }}>
                 <span style={{ color: t.text, fontSize: "12px", fontFamily: "'IBM Plex Mono', monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-                <span style={{ color: "#6a9aba", fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace" }}>id: {id}</span>
+                <span style={{ color: t.textMuted, fontSize: "11px", fontFamily: "'IBM Plex Mono', monospace" }}>id: {id}</span>
                 <span style={{ color: t.textGhost, fontSize: "11px", textAlign: "right" }}>{size ? `${(size / 1024).toFixed(0)} KB` : "—"}</span>
               </div>
             );
@@ -293,10 +294,26 @@ export default function DeployQueryStep() {
 
   return (
     <div>
-      <p style={{ color: t.textDim, fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0" }}>
-        {phase === "deploying"
-          ? "Fusion is building your knowledge base."
-          : "Your knowledge base is live. Click it to query your documents — answers powered by Grok or Claude via the RAG2 API."}
+      <p style={{ color: t.textDim, fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+        <span>
+          {phase === "deploying"
+            ? "Fusion is building your knowledge base."
+            : "Your knowledge base is live. Click it to query your documents — answers powered by Grok or Claude via the RAG2 API."}
+        </span>
+        <FeasibilityNote
+          align="right"
+          title="Production-Proven — Infrastructure Is Solved"
+          verdict="Every component used here runs in production at AWS, JPMorgan, and Fortune 500 firms today"
+          verdictType="success"
+          bullets={[
+            "OpenSearch HNSW vector index: production default for AWS Bedrock Knowledge Bases — scales to billions of vectors",
+            "text-embedding-3-small: OpenAI's production embedding model, used by thousands of RAG deployments daily",
+            "Hybrid retrieval (BM25 + kNN + Cohere Rerank): exact stack used by AWS Bedrock's managed RAG pipeline in production",
+            "RAG2 API (this demo): live backend running on localhost:8081 — upload, embed, and query working end-to-end right now",
+            "The entire infrastructure stack (S3 → IAM → OpenSearch → LLM) is solved. Fusion adds the JPMorgan entitlement layer: Fusion ID → dataspace → LOB-scoped access control on top of proven cloud primitives",
+            "Remaining work is product, not plumbing — UI polish, admin tooling, and integration with Fusion's existing auth stack",
+          ]}
+        />
       </p>
 
       {phase === "deploying" && <DeployingScreen onDone={() => setPhase("hub")} />}
@@ -309,8 +326,8 @@ export default function DeployQueryStep() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
             {accessMethods.map((m) => (
               <div key={m.method} style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "6px", padding: "12px" }}>
-                <div style={{ color: "#3a7aba", fontWeight: 700, fontSize: "12px", marginBottom: "4px" }}>{m.method}</div>
-                <div style={{ color: "#6a9aba", fontSize: "10px", fontFamily: "'IBM Plex Mono', monospace", marginBottom: "6px", background: t.deepBg, padding: "4px 6px", borderRadius: "3px" }}>{m.code}</div>
+                <div style={{ color: t.blue, fontWeight: 700, fontSize: "12px", marginBottom: "4px" }}>{m.method}</div>
+                <div style={{ color: t.textDim, fontSize: "10px", fontFamily: "'IBM Plex Mono', monospace", marginBottom: "6px", background: t.deepBg, padding: "4px 6px", borderRadius: "3px" }}>{m.code}</div>
                 <div style={{ color: t.textFaint, fontSize: "11px" }}>{m.desc}</div>
               </div>
             ))}

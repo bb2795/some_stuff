@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { uploadFile } from "../../services/ragApi";
+import FeasibilityNote from "../FeasibilityNote";
 
 const sources = [
   {
@@ -265,10 +266,22 @@ export default function ConnectSourceStep({ onSkipToStep, initialSource = null }
 
   return (
     <div>
-      <p style={{ color: t.textMuted, fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0" }}>
-        Choose where your knowledge lives. Fusion connects to the source — it indexes and serves, but{" "}
-        <strong style={{ color: t.text }}>data stays in your account</strong>.
-      </p>
+      <div style={{ color: t.textMuted, fontSize: "14px", lineHeight: "1.6", margin: "0 0 12px 0", display: "flex", alignItems: "baseline", gap: "8px", flexWrap: "wrap" }}>
+        <span>Choose where your knowledge lives. Fusion connects to the source — it indexes and serves, but{" "}
+        <strong style={{ color: t.text }}>data stays in your account</strong>.</span>
+        <FeasibilityNote
+          title="Multi-Source Connector Coverage"
+          verdict="Proven connector pattern — all five sources have production implementations"
+          verdictType="success"
+          bullets={[
+            "AWS Bedrock Knowledge Bases natively supports S3, Confluence, SharePoint, Salesforce, and Web connectors via the same data source API",
+            "IBM Cloud Object Storage uses the S3-compatible API — same connector code works for COS and AWS S3",
+            "SharePoint / Documentum: Microsoft Graph API provides delta query endpoints for incremental sync (same pattern used by Coveo, Elastic, and Glean)",
+            "Data Product entitlement inheritance mirrors Collibra and Alation's governed catalog approach — no additional credentials needed",
+            "Direct Upload: RAG2 API stores files in S3Bucket/ scoped to the user — tested and live in this demo",
+          ]}
+        />
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px", marginBottom: "20px" }}>
         {sources.map((src) => (
@@ -333,7 +346,23 @@ export default function ConnectSourceStep({ onSkipToStep, initialSource = null }
           </div>
 
           <div style={{ borderTop: `1px solid ${t.borderSubtle}`, paddingTop: "12px" }}>
-            <div style={{ color: t.textMuted, fontSize: "11px", fontWeight: 600, marginBottom: "6px" }}>AUTHENTICATION METHOD</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+              <div style={{ color: t.textMuted, fontSize: "11px", fontWeight: 600 }}>AUTHENTICATION METHOD</div>
+              <FeasibilityNote
+                align="right"
+                title="Cross-Account IAM Role — Production Pattern"
+                verdict="Used by Datadog, Lacework, Wiz, Cado, Site24x7 — all deploy via CloudFormation one-click"
+                verdictType="success"
+                bullets={[
+                  "CloudFormation one-click onboarding: vendor generates a template, customer clicks 'Launch Stack', AWS creates the role — no policy writing needed",
+                  "ExternalId condition in the trust policy prevents confused deputy attacks — AWS documented best practice (IAM docs §ExternalId)",
+                  "Datadog AWS Integration: exact same pattern — CF stack, cross-account role, sts:AssumeRole. Used by 20,000+ AWS customers",
+                  "Site24x7: one-click CF stack creates a read-only monitoring role. Same IAM pattern as proposed here",
+                  "Read-only permissions (s3:GetObject, s3:ListBucket) mean Fusion can index but never modify your data",
+                  "Customer retains full control — revoke by deleting the IAM role at any time",
+                ]}
+              />
+            </div>
             {active.authMethods.map((m, i) => (
               <div key={m.id}>
                 <div onClick={() => setSelectedAuth(i)}

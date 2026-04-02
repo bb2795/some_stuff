@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/bitun/Documents/RAG2/202603_BITUN_DATA_ACCESS_PROJECT/**)",
-      "Read(//c/Users/bitun/.claude/projects/c--Users-bitun-Documents-KB-creation/memory/**)"
+      "Read(//c/Users/bitun/.claude/projects/c--Users-bitun-Documents-KB-creation/memory/**)",
+      "Bash(npx tsc --noEmit --jsx react)",
+      "Bash(node_modules/.bin/vite build)",
+      "Bash(findstr \":8080 :8081\")",
+      "Bash(findstr LISTENING)",
+      "Bash(taskkill /PID 80716 /F)",
+      "Bash(taskkill /PID 88104 /F)",
+      "Bash(cmd /c \"taskkill /PID 80716 /F\")",
+      "Bash(cmd /c \"taskkill /PID 88104 /F\")",
+      "Bash(cmd /c \"netstat -ano | findstr \"\":8080 :8081\"\"\")"
     ]
   }
 }

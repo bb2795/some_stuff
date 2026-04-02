@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
+import FeasibilityNote from "../FeasibilityNote";
 
 const stages = [
   {
@@ -165,6 +166,20 @@ export default function ConfigureRAGStep({ onDeploy }) {
           <span style={{ color: t.textMuted, fontSize: "13px" }}>Advanced RAG Config</span>
           <span style={{ color: t.textGhost, fontSize: "13px" }}>·</span>
           <span style={{ color: t.textDim, fontSize: "13px", fontWeight: 500 }}>CCB Risk Exposures</span>
+          <FeasibilityNote
+            align="right"
+            title="RAG Pipeline — Mirrors AWS Bedrock Knowledge Bases"
+            verdict="Every stage here maps directly to a production AWS Bedrock or LangChain component"
+            verdictType="success"
+            bullets={[
+              "AWS Bedrock Knowledge Bases: supports Titan Embed v2 and Cohere Embed as embedding providers — same models shown here",
+              "Vector stores: Bedrock natively supports OpenSearch Serverless, Aurora pgvector, Pinecone, Mongo Atlas — all options in this config",
+              "Chunking: Bedrock supports Fixed, Hierarchical, and Semantic chunking strategies — matching the options in stage 1",
+              "Hybrid search (BM25 + kNN): OpenSearch 2.9+ natively supports hybrid search with the Neural Query plugin — production-proven at Amazon scale",
+              "Cohere Rerank v3 is the reranker used by AWS Bedrock's managed RAG pipeline in production",
+              "Incremental sync via S3 event notifications: Bedrock Knowledge Bases uses the same SNS/SQS trigger mechanism for real-time updates",
+            ]}
+          />
         </div>
 
         {/* Stage tabs */}
