@@ -12,7 +12,7 @@ const sources = [
     badgeColor: "#ba8a3a",
     desc: "Connect to your LOB's S3 bucket. Most common path for teams with existing data in AWS.",
     fields: [
-      { label: "Bucket URI", placeholder: "s3://fusion-data/ccb-risk/ccb-risk-exposures/", type: "uri" },
+      { label: "Bucket URI", placeholder: "s3://kb-data/ccb-risk/ccb-risk-exposures/", type: "uri" },
       { label: "Region", placeholder: "us-east-1", type: "select" },
       { label: "Dataspace", placeholder: "CCB Risk", type: "select" },
     ],
@@ -59,7 +59,7 @@ const sources = [
     name: "Data Product",
     badge: "DP",
     badgeColor: "#3a9a5a",
-    desc: "Consume an existing governed Data Product from the Fusion catalog. Entitlements inherited automatically.",
+    desc: "Consume an existing governed Data Product from the catalog. Entitlements inherited automatically.",
     fields: [{ label: "Data Product", placeholder: "Search data products...", type: "search" }],
     authMethods: [{ id: "inherited", label: "Inherited from Data Product entitlements — no additional credentials needed" }],
   },
@@ -267,7 +267,7 @@ export default function ConnectSourceStep({ onSkipToStep, initialSource = null }
   return (
     <div>
       <div style={{ color: t.textMuted, fontSize: "14px", lineHeight: "1.6", margin: "0 0 12px 0", display: "flex", alignItems: "baseline", gap: "8px", flexWrap: "wrap" }}>
-        <span>Choose where your knowledge lives. Fusion connects to the source — it indexes and serves, but{" "}
+        <span>Choose where your knowledge lives. Knowledge connects to the source — it indexes and serves, but{" "}
         <strong style={{ color: t.text }}>data stays in your account</strong>.</span>
         <FeasibilityNote
           title="Multi-Source Connector Coverage"
@@ -358,7 +358,7 @@ export default function ConnectSourceStep({ onSkipToStep, initialSource = null }
                   "ExternalId condition in the trust policy prevents confused deputy attacks — AWS documented best practice (IAM docs §ExternalId)",
                   "Datadog AWS Integration: exact same pattern — CF stack, cross-account role, sts:AssumeRole. Used by 20,000+ AWS customers",
                   "Site24x7: one-click CF stack creates a read-only monitoring role. Same IAM pattern as proposed here",
-                  "Read-only permissions (s3:GetObject, s3:ListBucket) mean Fusion can index but never modify your data",
+                  "Read-only permissions (s3:GetObject, s3:ListBucket) mean Knowledge can index but never modify your data",
                   "Customer retains full control — revoke by deleting the IAM role at any time",
                 ]}
               />

@@ -283,7 +283,7 @@ function QueryConsole({ user, onClose }) {
 const accessMethods = [
   { method: "REST API", code: "POST /v1/qa", desc: "Real Q&A via RAG2 pipeline (:8081)" },
   { method: "Agent Tool", code: 'tools: [{ type: "knowledge", kb_id: "..." }]', desc: "Agents query KBs as tools" },
-  { method: "Fusion Console", code: "Hub → Knowledge → Query", desc: "Interactive query and exploration" },
+  { method: "Console", code: "Hub → Knowledge → Query", desc: "Interactive query and exploration" },
 ];
 
 // ─── Main export ───
@@ -297,7 +297,7 @@ export default function DeployQueryStep() {
       <p style={{ color: t.textDim, fontSize: "14px", lineHeight: "1.6", margin: "0 0 20px 0", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
         <span>
           {phase === "deploying"
-            ? "Fusion is building your knowledge base."
+            ? "Knowledge is building your knowledge base."
             : "Your knowledge base is live. Click it to query your documents — answers powered by Grok or Claude via the RAG2 API."}
         </span>
         <FeasibilityNote
@@ -310,8 +310,8 @@ export default function DeployQueryStep() {
             "text-embedding-3-small: OpenAI's production embedding model, used by thousands of RAG deployments daily",
             "Hybrid retrieval (BM25 + kNN + Cohere Rerank): exact stack used by AWS Bedrock's managed RAG pipeline in production",
             "RAG2 API (this demo): live backend running on localhost:8081 — upload, embed, and query working end-to-end right now",
-            "The entire infrastructure stack (S3 → IAM → OpenSearch → LLM) is solved. Fusion adds the JPMorgan entitlement layer: Fusion ID → dataspace → LOB-scoped access control on top of proven cloud primitives",
-            "Remaining work is product, not plumbing — UI polish, admin tooling, and integration with Fusion's existing auth stack",
+            "The entire infrastructure stack (S3 → IAM → OpenSearch → LLM) is solved. Knowledge adds the entitlement layer: Workspace ID → dataspace → LOB-scoped access control on top of proven cloud primitives",
+            "Remaining work is product, not plumbing — UI polish, admin tooling, and integration with the existing auth stack",
           ]}
         />
       </p>

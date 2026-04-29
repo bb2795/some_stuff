@@ -66,7 +66,7 @@ const CATALOG = [
     name: "CCB Risk Exposures",
     owner: "user1",
     tags: [{ label: "Store", color: "#555" }, { label: "CCB Risk", color: "#3a7aba" }],
-    path: "s3://fusion-data/ccb-risk/ccb-risk-exposures/",
+    path: "s3://kb-data/ccb-risk/ccb-risk-exposures/",
     desc: "Consolidated credit risk exposure data across all CCB portfolios including PD, LGD, and EAD metrics for regulatory and internal reporting.",
     records: "2.4M", updated: "2025-12-20", region: "Global", classification: "Store",
     topics: ["Risk", "Credit", "Exposure"],
@@ -77,7 +77,7 @@ const CATALOG = [
     name: "Equities Reference Data",
     owner: "user2",
     tags: [{ label: "Store", color: "#555" }, { label: "Equities Desk", color: "#3a9a5a" }],
-    path: "s3://fusion-data/equities/reference-data/",
+    path: "s3://kb-data/equities/reference-data/",
     desc: "Static and slowly changing reference data for equity instruments including ISINs, exchange listings, sector classifications, and corporate actions.",
     records: "1.2M", updated: "2025-12-19", region: "Global", classification: "Store",
     topics: ["Equities", "Reference", "Instruments"],
@@ -729,7 +729,7 @@ const STUDIO_TILES = [
 ];
 
 // ─── Main KBHub ───────────────────────────────────────────────────────────────
-export default function KBHub({ onCreateNew, onUploadDocs }) {
+export default function KBHub({ onCreateNew, onUploadDocs, onOpenKnowledge, onOpenExtraction }) {
   const { user, setUser } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [queryTarget, setQueryTarget] = useState(null);
@@ -801,13 +801,17 @@ export default function KBHub({ onCreateNew, onUploadDocs }) {
         <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
           <button onClick={onCreateNew}
             style={{ background: t.btnPrimary, border: `1px solid ${t.btnPrimaryBorder}`, borderRadius: "6px", padding: "6px 14px", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: "12px", display: "flex", alignItems: "center", gap: "5px" }}>
-            <span style={{ fontSize: "14px", lineHeight: 1 }}>+</span> create knowledge base
+            <span style={{ fontSize: "14px", lineHeight: 1 }}>+</span> New KB
           </button>
 
-          {["Share", "Settings"].map((label) => (
-            <button key={label}
-              style={{ background: "transparent", border: `1px solid ${t.border}`, borderRadius: "6px", padding: "5px 11px", color: t.textDim, cursor: "pointer", fontSize: "12px" }}>
-              {label}
+          {/* Unified nav — each opens a slide-over panel */}
+          {[
+            { label: "Datasets", onClick: onOpenKnowledge, icon: "\u2B21" },
+            { label: "Extract", onClick: onOpenExtraction, icon: "\u26A1" },
+          ].map((nav) => (
+            <button key={nav.label} onClick={nav.onClick}
+              style={{ background: "transparent", border: `1px solid ${t.border}`, borderRadius: "6px", padding: "5px 11px", color: t.textDim, cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}>
+              <span style={{ fontSize: "13px" }}>{nav.icon}</span> {nav.label}
             </button>
           ))}
 

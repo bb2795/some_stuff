@@ -1,42 +1,40 @@
-import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { WorkspaceProvider, useWorkspace } from "./context/WorkspaceContext";
 import AuthGate from "./components/AuthGate";
-import KBHub from "./KBHub";
-import KnowledgeWorkflow from "./KnowledgeWorkflow";
 
-function AppInner() {
+import Workspace from "./Workspace";
+import ExtractionView from "./workspace/ExtractionView";
+import FlowGraphScreen from "./screens/FlowGraphScreen";
+import ObsidianGraphScreen from "./screens/ObsidianGraphScreen";
+import AgentStudioScreen from "./screens/AgentStudioScreen";
+
+function Router() {
+  const { view } = useWorkspace();
+  if (view === "extraction")    return <ExtractionView />;
+  if (view === "flowgraph")     return <FlowGraphScreen />;
+  if (view === "obsidian")      return <ObsidianGraphScreen />;
+  if (view === "agent-studio")  return <AgentStudioScreen />;
+  return <Workspace />;
+}
+
+// Shell reads the current user so it can re-key the WorkspaceProvider on
+// user change — this remounts it with a clean slate (userKBs, pipelines,
+// selection, file blobs, etc.) so switching users doesn't leak state.
+function Shell() {
   const { user } = useAuth();
-  const [view, setView] = useState("hub"); // "hub" | "workflow"
-  const [workflowInitialStep, setWorkflowInitialStep] = useState(0);
-  const [workflowInitialSource, setWorkflowInitialSource] = useState(null);
-
   if (!user) return <AuthGate />;
-
-  const goToHub = () => { setView("hub"); setWorkflowInitialStep(0); setWorkflowInitialSource(null); };
-
-  if (view === "workflow") {
-    return (
-      <KnowledgeWorkflow
-        initialStep={workflowInitialStep}
-        initialSource={workflowInitialSource}
-        onBack={goToHub}
-      />
-    );
-  }
-
   return (
-    <KBHub
-      onCreateNew={() => { setWorkflowInitialStep(0); setWorkflowInitialSource(null); setView("workflow"); }}
-      onUploadDocs={() => { setWorkflowInitialStep(0); setWorkflowInitialSource("upload"); setView("workflow"); }}
-    />
+    <WorkspaceProvider key={user.userid}>
+      <Router />
+    </WorkspaceProvider>
   );
 }
 
 export default function App() {
   return (
     <ThemeProvider>
-      <AppInner />
+      <Shell />
     </ThemeProvider>
   );
 }

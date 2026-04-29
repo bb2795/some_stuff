@@ -5,7 +5,8 @@ deploy.py — Start the full KB Creation Workflow stack
 Services started:
   1. RAG2 Knowledge Base API   → http://localhost:8080  (flask_api_engine)
   2. RAG2 RAG Pipeline API     → http://localhost:8081  (flask_rag_pipe)
-  3. KB Creation Workflow UI   → http://localhost:5173  (Vite + React)
+  3. Extraction Agent API      → http://localhost:8000  (extraction middleware)
+  4. KB Creation Workflow UI   → http://localhost:5173  (Vite + React)
 
 Usage:
     python deploy.py
@@ -17,12 +18,13 @@ import os
 import time
 import webbrowser
 
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-RAG2_ROOT   = os.path.join(PROJECT_DIR, "..", "RAG2", "202603_BITUN_DATA_ACCESS_PROJECT")
-KB_SVC_DIR  = os.path.join(RAG2_ROOT, "knowledge_base")
-RAG_SVC_DIR = os.path.join(RAG2_ROOT, "RAG")
-VITE_PORT   = 5173
-PROCS       = []
+PROJECT_DIR  = os.path.dirname(os.path.abspath(__file__))
+RAG2_ROOT    = os.path.join(PROJECT_DIR, "..", "RAG2", "202603_BITUN_DATA_ACCESS_PROJECT")
+KB_SVC_DIR   = os.path.join(RAG2_ROOT, "knowledge_base")
+RAG_SVC_DIR  = os.path.join(RAG2_ROOT, "RAG")
+EXTRACT_DIR  = os.path.join(PROJECT_DIR, "..", "extraction agent v2", "extraction_experiments")
+VITE_PORT    = 5173
+PROCS        = []
 
 
 def run(cmd, cwd=None, **kwargs):
@@ -110,6 +112,21 @@ def start_rag_service():
     return proc
 
 
+def start_extraction_service():
+    """Start the Extraction Agent FastAPI service on :8000."""
+    if not os.path.isdir(EXTRACT_DIR):
+        print("  SKIP: extraction agent v2 directory not found.")
+        return None
+    print(f"  Launching Extraction Agent → http://localhost:8000")
+    proc = subprocess.Popen(
+        "python -m uvicorn middleware.api:app --host 0.0.0.0 --port 8000",
+        cwd=EXTRACT_DIR,
+        shell=True,
+    )
+    PROCS.append(proc)
+    return proc
+
+
 def start_vite():
     """Start the Vite dev server and block until Ctrl+C."""
     print(f"\n  Launching Vite UI → http://localhost:{VITE_PORT}/")
@@ -146,16 +163,16 @@ if __name__ == "__main__":
     print("  KB Creation Workflow — Full Stack Deploy")
     print("=" * 56)
 
-    print("\n[1/4] Checking environment...")
+    print("\n[1/5] Checking environment...")
     check_python()
     check_node()
     check_npm()
     rag2_ok = check_rag2_dirs()
 
-    print("\n[2/4] Installing frontend dependencies...")
+    print("\n[2/5] Installing frontend dependencies...")
     install_npm_deps()
 
-    print("\n[3/4] Starting RAG2 backend services...")
+    print("\n[3/5] Starting RAG2 backend services...")
     if rag2_ok:
         start_kb_service()
         time.sleep(1)
@@ -167,7 +184,16 @@ if __name__ == "__main__":
         print("  RAG2 services skipped (directory not found).")
         print("  Upload and Q&A features will show connection errors in the UI.")
 
-    print("\n[4/4] Starting frontend...")
+    print("\n[4/5] Starting Extraction Agent...")
+    if os.path.isdir(EXTRACT_DIR):
+        start_extraction_service()
+        time.sleep(1)
+        print("  Extraction → http://localhost:8000")
+    else:
+        print("  Extraction Agent skipped (directory not found).")
+        print("  Document extraction features will be unavailable.")
+
+    print("\n[5/5] Starting frontend...")
     try:
         start_vite()
     finally:

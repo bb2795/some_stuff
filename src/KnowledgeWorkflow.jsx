@@ -46,7 +46,7 @@ export default function KnowledgeWorkflow({ onBack, initialStep = 0, initialSour
           <div>
             <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
               <span style={{ fontWeight: 700, fontSize: "22px", color: t.textStrong, letterSpacing: "-0.5px" }}>
-                Knowledge on Fusion
+                Knowledge
               </span>
               <span style={{ color: t.textGhost, fontSize: "14px" }}>New KB Workflow</span>
             </div>

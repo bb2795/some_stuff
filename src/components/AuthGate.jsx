@@ -22,7 +22,7 @@ export default function AuthGate() {
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
         <div style={{ fontWeight: 700, fontSize: "28px", color: t.textStrong, letterSpacing: "-0.5px", marginBottom: "8px" }}>
-          Knowledge on Fusion
+          Knowledge
         </div>
         <div style={{ color: t.textGhost, fontSize: "14px" }}>
           Select your identity to continue

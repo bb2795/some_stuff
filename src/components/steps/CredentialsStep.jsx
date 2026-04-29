@@ -91,8 +91,8 @@ function ChooseMethodStep({ onNext }) {
       title: "One-Click Setup",
       badge: "RECOMMENDED",
       badgeColor: "#3a9a5a",
-      desc: "Fusion deploys a CloudFormation stack in your AWS account that creates a read-only role scoped to your bucket. You just click 'Authorize' in your AWS console — no policy writing, no ARN copying.",
-      steps: ["Enter your S3 bucket path", "Fusion generates a CloudFormation stack", "You click 'Launch Stack' (opens AWS with pre-filled template)", "AWS creates the role automatically", "Fusion verifies the connection"],
+      desc: "Knowledge deploys a CloudFormation stack in your AWS account that creates a read-only role scoped to your bucket. You just click 'Authorize' in your AWS console — no policy writing, no ARN copying.",
+      steps: ["Enter your S3 bucket path", "Knowledge generates a CloudFormation stack", "You click 'Launch Stack' (opens AWS with pre-filled template)", "AWS creates the role automatically", "Knowledge verifies the connection"],
       time: "~2 minutes",
     },
     {
@@ -101,7 +101,7 @@ function ChooseMethodStep({ onNext }) {
       badge: "INFRA-AS-CODE",
       badgeColor: "#8a5aba",
       desc: "Download a pre-built Terraform module that creates the IAM role. Ideal for teams managing infrastructure through CI/CD pipelines.",
-      steps: ["Enter your S3 bucket path", "Download Terraform module", "Run terraform apply in your pipeline", "Fusion detects the role automatically"],
+      steps: ["Enter your S3 bucket path", "Download Terraform module", "Run terraform apply in your pipeline", "Knowledge detects the role automatically"],
       time: "~5 minutes",
     },
     {
@@ -109,8 +109,8 @@ function ChooseMethodStep({ onNext }) {
       title: "Manual Setup",
       badge: "ADVANCED",
       badgeColor: "#ba8a3a",
-      desc: "For teams with custom IAM requirements. Fusion provides the trust policy and permission policy — you create the role yourself.",
-      steps: ["Enter your S3 bucket path", "Copy the generated trust policy", "Create role in your AWS account", "Paste Role ARN back into Fusion"],
+      desc: "For teams with custom IAM requirements. Knowledge provides the trust policy and permission policy — you create the role yourself.",
+      steps: ["Enter your S3 bucket path", "Copy the generated trust policy", "Create role in your AWS account", "Paste Role ARN back into Knowledge"],
       time: "~10 minutes",
     },
   ];
@@ -118,10 +118,10 @@ function ChooseMethodStep({ onNext }) {
   return (
     <div>
       <h3 style={{ color: t.textStrong, fontSize: "20px", fontWeight: 700, marginBottom: "6px" }}>
-        How should Fusion access your S3 bucket?
+        How should Knowledge access your S3 bucket?
       </h3>
       <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
-        All methods create an IAM role in <em>your</em> AWS account. Fusion assumes this role with read-only permissions. No credentials are stored — you can revoke access anytime.
+        All methods create an IAM role in <em>your</em> AWS account. Knowledge assumes this role with read-only permissions. No credentials are stored — you can revoke access anytime.
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px" }}>
@@ -230,7 +230,7 @@ function ChooseMethodStep({ onNext }) {
 // ─── Sub-step 2: Enter Bucket ───
 function BucketStep({ onNext }) {
   const { t } = useTheme();
-  const [bucket, setBucket] = useState("s3://fusion-data/ccb-risk/ccb-risk-exposures/");
+  const [bucket, setBucket] = useState("s3://kb-data/ccb-risk/ccb-risk-exposures/");
   const [scanned, setScanned] = useState(false);
 
   return (
@@ -369,15 +369,15 @@ function ProvisionStep({ onNext }) {
   };
 
   const stackDetails = {
-    name: "Fusion-KB-CCBRisk-ReadOnly",
+    name: "KB-CCBRisk-ReadOnly",
     resources: [
-      { type: "AWS::IAM::Role", name: "FusionKBReadOnlyRole", desc: "Cross-account role for Fusion ingestion service" },
-      { type: "AWS::IAM::Policy", name: "FusionS3ReadPolicy", desc: "Read-only access scoped to s3://fusion-data/ccb-risk/" },
+      { type: "AWS::IAM::Role", name: "KBReadOnlyRole", desc: "Cross-account role for Knowledge ingestion service" },
+      { type: "AWS::IAM::Policy", name: "KBS3ReadPolicy", desc: "Read-only access scoped to s3://kb-data/ccb-risk/" },
     ],
     permissions: [
-      { action: "s3:GetObject", resource: "arn:aws:s3:::fusion-data/ccb-risk/*", note: "Read documents" },
-      { action: "s3:ListBucket", resource: "arn:aws:s3:::fusion-data", note: "List bucket contents" },
-      { action: "s3:GetBucketNotificationConfiguration", resource: "arn:aws:s3:::fusion-data", note: "Enable event-driven sync" },
+      { action: "s3:GetObject", resource: "arn:aws:s3:::kb-data/ccb-risk/*", note: "Read documents" },
+      { action: "s3:ListBucket", resource: "arn:aws:s3:::kb-data", note: "List bucket contents" },
+      { action: "s3:GetBucketNotificationConfiguration", resource: "arn:aws:s3:::kb-data", note: "Enable event-driven sync" },
     ],
     excluded: ["s3:PutObject", "s3:DeleteObject", "s3:PutBucketPolicy", "iam:CreateUser", "iam:CreateRole", "ec2:*", "lambda:*"],
   };
@@ -388,10 +388,10 @@ function ProvisionStep({ onNext }) {
         {phase === "complete" ? "Access provisioned" : "Review & authorize access"}
       </h3>
       <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
-        {phase === "preview" && "Fusion has generated a CloudFormation template. Review what will be created in your AWS account, then click to deploy."}
+        {phase === "preview" && "Knowledge has generated a CloudFormation template. Review what will be created in your AWS account, then click to deploy."}
         {phase === "launching" && "Opening AWS CloudFormation in a new tab with the pre-filled template..."}
-        {phase === "waiting" && "Waiting for you to click 'Create Stack' in the AWS tab. Fusion is polling for the role..."}
-        {phase === "complete" && "The IAM role has been created and Fusion has verified access. No credentials were stored."}
+        {phase === "waiting" && "Waiting for you to click 'Create Stack' in the AWS tab. Knowledge is polling for the role..."}
+        {phase === "complete" && "The IAM role has been created and Knowledge has verified access. No credentials were stored."}
       </p>
 
       <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
@@ -409,7 +409,7 @@ function ProvisionStep({ onNext }) {
                 "Datadog AWS Integration uses this exact pattern: CF stack, cross-account role with ExternalId, sts:AssumeRole — deployed by 20,000+ AWS accounts",
                 "Lacework, Wiz, and Orca Security all use CloudFormation one-click onboarding with the same trust policy structure",
                 "Read-only permissions (s3:GetObject, s3:ListBucket, s3:GetBucketNotificationConfiguration) are the minimum needed — principle of least privilege",
-                "Customer retains full ownership — the IAM role lives in their AWS account and can be deleted at any time to instantly revoke Fusion's access",
+                "Customer retains full ownership — the IAM role lives in their AWS account and can be deleted at any time to instantly revoke Knowledge's access",
               ]}
             />
           </div>
@@ -459,7 +459,7 @@ function ProvisionStep({ onNext }) {
               ))}
             </div>
             <div style={{ color: t.textMuted, fontSize: "11px", marginTop: "8px" }}>
-              Fusion cannot write, delete, modify bucket policies, create users/roles, or access any other AWS service.
+              Knowledge cannot write, delete, modify bucket policies, create users/roles, or access any other AWS service.
             </div>
           </div>
         </div>
@@ -491,7 +491,7 @@ function ProvisionStep({ onNext }) {
               { label: "CloudFormation template sent", status: "done" },
               { label: "Waiting for you to click 'Create Stack' in AWS console", status: "waiting" },
               { label: "Role creation & policy attachment", status: "pending" },
-              { label: "Fusion verifies role assumption", status: "pending" },
+              { label: "Knowledge verifies role assumption", status: "pending" },
             ].map((item) => (
               <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 {item.status === "done" && <span style={{ color: "#3a9a5a", fontSize: "14px" }}>✓</span>}
@@ -517,7 +517,7 @@ function ProvisionStep({ onNext }) {
               <span style={{ color: "#3a9a5a", fontWeight: 700, fontSize: "14px" }}>Stack created successfully</span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {["CloudFormation template sent", "Stack created in your account", "IAM role created: FusionKBReadOnlyRole", "Fusion verified role assumption"].map((label) => (
+              {["CloudFormation template sent", "Stack created in your account", "IAM role created: KBReadOnlyRole", "Knowledge verified role assumption"].map((label) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ color: "#3a9a5a", fontSize: "14px" }}>✓</span>
                   <span style={{ color: "#8aaa8a", fontSize: "13px" }}>{label}</span>
@@ -528,8 +528,8 @@ function ProvisionStep({ onNext }) {
 
           <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "12px" }}>
             {[
-              { label: "Role ARN", value: "arn:aws:iam::987654321098:role/FusionKBReadOnlyRole" },
-              { label: "External ID", value: "fusion-kb-ccb-risk-a7f3x" },
+              { label: "Role ARN", value: "arn:aws:iam::987654321098:role/KBReadOnlyRole" },
+              { label: "External ID", value: "kb-ccb-risk-a7f3x" },
               { label: "Permissions", value: "s3:GetObject, s3:ListBucket (read-only)" },
               { label: "Revocation", value: "Delete the CloudFormation stack anytime" },
             ].map((d) => (
@@ -560,11 +560,11 @@ function VerifyStep({ onNext }) {
   }, []);
 
   const checks = [
-    { name: "Assume role", desc: "Can Fusion assume the IAM role?", status: verifyPhase === "running" ? "checking" : "pass", time: "120ms" },
-    { name: "List objects", desc: "Can Fusion list the bucket contents?", status: verifyPhase === "running" ? "checking" : "pass", time: "340ms" },
-    { name: "Read sample", desc: "Can Fusion read a sample document?", status: verifyPhase === "running" ? "pending" : "pass", time: "85ms" },
-    { name: "Event notifications", desc: "Can Fusion receive S3 event notifications?", status: verifyPhase === "running" ? "pending" : "pass", time: "210ms" },
-    { name: "Network path", desc: "Is the bucket reachable from Fusion's VPC?", status: verifyPhase === "running" ? "pending" : "pass", time: "12ms" },
+    { name: "Assume role", desc: "Can Knowledge assume the IAM role?", status: verifyPhase === "running" ? "checking" : "pass", time: "120ms" },
+    { name: "List objects", desc: "Can Knowledge list the bucket contents?", status: verifyPhase === "running" ? "checking" : "pass", time: "340ms" },
+    { name: "Read sample", desc: "Can Knowledge read a sample document?", status: verifyPhase === "running" ? "pending" : "pass", time: "85ms" },
+    { name: "Event notifications", desc: "Can Knowledge receive S3 event notifications?", status: verifyPhase === "running" ? "pending" : "pass", time: "210ms" },
+    { name: "Network path", desc: "Is the bucket reachable from Knowledge's VPC?", status: verifyPhase === "running" ? "pending" : "pass", time: "12ms" },
   ];
 
   return (
@@ -581,12 +581,12 @@ function VerifyStep({ onNext }) {
             "S3 event notifications (SNS/SQS) enable real-time incremental sync — same mechanism used by AWS Bedrock Knowledge Bases and Databricks Unity Catalog",
             "VPC endpoint reachability check mirrors AWS recommended IAM Access Analyzer verification steps",
             "Datadog verifies IAM role assumption in exactly this way during their AWS integration setup — latency figures (120ms role assume, 340ms list) are realistic for us-east-1",
-            "Once verified, credentials are never stored — Fusion re-assumes the role on demand using the stored Role ARN + ExternalId",
+            "Once verified, credentials are never stored — Knowledge re-assumes the role on demand using the stored Role ARN + ExternalId",
           ]}
         />
       </h3>
       <p style={{ color: t.textMuted, fontSize: "13px", lineHeight: "1.6", marginBottom: "20px" }}>
-        Fusion is running a series of health checks to confirm end-to-end connectivity before you start loading documents.
+        Knowledge is running a series of health checks to confirm end-to-end connectivity before you start loading documents.
       </p>
 
       <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "10px", overflow: "hidden", marginBottom: "16px" }}>
@@ -610,7 +610,7 @@ function VerifyStep({ onNext }) {
         <div>
           <div style={{ background: t.greenTint, border: "1px solid #1a4a2a", borderRadius: "8px", padding: "14px", marginBottom: "16px" }}>
             <div style={{ color: "#3a9a5a", fontSize: "13px", fontWeight: 600 }}>
-              ✓ Connection verified. Fusion can read from s3://fusion-data/ccb-risk/ccb-risk-exposures/ with 1,247 objects detected.
+              ✓ Connection verified. Knowledge can read from s3://kb-data/ccb-risk/ccb-risk-exposures/ with 1,247 objects detected.
             </div>
           </div>
           <button onClick={onNext} style={{ background: "#1a4a2a", border: "1px solid #3a9a5a", borderRadius: "8px", padding: "12px 32px", color: t.textStrong, cursor: "pointer", fontWeight: 600, fontSize: "14px", width: "100%" }}>
@@ -631,7 +631,7 @@ function DoneStep() {
         <div style={{ fontSize: "40px", marginBottom: "12px" }}>✓</div>
         <h3 style={{ color: t.textStrong, fontSize: "22px", fontWeight: 700, marginBottom: "8px" }}>Source Connected</h3>
         <p style={{ color: t.textMuted, fontSize: "14px", lineHeight: "1.6", maxWidth: "500px", margin: "0 auto 20px" }}>
-          Your S3 bucket is connected to Fusion. You can now load documents, configure your RAG pipeline, and start querying.
+          Your S3 bucket is connected to Knowledge. You can now load documents, configure your RAG pipeline, and start querying.
         </p>
         <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
           {[
@@ -649,10 +649,10 @@ function DoneStep() {
       <div style={{ background: t.cardBg, border: `1px solid ${t.border}`, borderRadius: "8px", padding: "16px" }}>
         <div style={{ color: t.textMuted, fontSize: "10px", fontWeight: 700, textTransform: "uppercase", marginBottom: "10px" }}>Connection Summary</div>
         {[
-          { label: "Source", value: "s3://fusion-data/ccb-risk/ccb-risk-exposures/" },
+          { label: "Source", value: "s3://kb-data/ccb-risk/ccb-risk-exposures/" },
           { label: "Account", value: "987654321098" },
           { label: "Access Method", value: "IAM Cross-Account Role (CloudFormation)" },
-          { label: "Role", value: "arn:aws:iam::987654321098:role/FusionKBReadOnlyRole" },
+          { label: "Role", value: "arn:aws:iam::987654321098:role/KBReadOnlyRole" },
           { label: "Permissions", value: "Read-only (s3:GetObject, s3:ListBucket)" },
           { label: "Credentials Stored", value: "None — role assumption only" },
           { label: "Revocation", value: "Delete CloudFormation stack in your AWS account" },

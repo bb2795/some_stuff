@@ -10,6 +10,12 @@ export default defineConfig({
         target: "http://localhost:8081",
         changeOrigin: true,
       },
+      // Proxy /extraction/* → Extraction Agent on :8000
+      "/extraction": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/extraction/, ""),
+      },
     },
   },
 });

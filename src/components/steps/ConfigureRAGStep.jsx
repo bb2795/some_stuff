@@ -75,7 +75,7 @@ const stages = [
         {
           name: "OpenSearch (JPM Managed)",
           selected: true,
-          desc: "Fusion-managed OpenSearch cluster. Hybrid search (BM25 + kNN) built in. Approved infrastructure.",
+          desc: "Managed OpenSearch cluster. Hybrid search (BM25 + kNN) built in. Approved infrastructure.",
         },
         {
           name: "PostgreSQL + pgvector",
