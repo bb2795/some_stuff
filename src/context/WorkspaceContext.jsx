@@ -182,8 +182,14 @@ export function WorkspaceProvider({ children }) {
   const [pipelines, setPipelines] = useState({});
   const [fileBlobs, setFileBlobs] = useState({});
 
-  // User-created KBs over their own documents
-  const [userKBs, setUserKBs] = useState([]); // { id, name, docIds, chunk, embedding, vectorStore, createdAt }
+  // User-created Stores. A Store is a named, persisted collection of docs.
+  //   indexed: false → raw doc bag (chat with parsed chunks, no embeddings)
+  //   indexed: true  → KB/Index (has chunk/embedding/vectorStore/retriever)
+  // Existing entries without `indexed` are treated as indexed (back-compat).
+  const [stores, setStores] = useState([]); // { id, name, docIds, indexed, kbType?, ...ingestionConfig }
+
+  // Query configs — per-workspace. kind: "session" (30d TTL) | "saved" (permanent).
+  const [queryConfigs, setQueryConfigs] = useState([]);
 
   // Multi-select for docs (used by Configure KB action)
   const [selectedDocIds, setSelectedDocIds] = useState([]);
@@ -270,18 +276,118 @@ export function WorkspaceProvider({ children }) {
     getFileBlob: (fileId) => fileBlobs[fileId] || null,
     setFileBlob: (fileId, blob) => setFileBlobs((b) => ({ ...b, [fileId]: blob })),
 
-    // User KBs — filtered to the current workspace
-    userKBs: userKBs.filter((k) => !k.workspaceId || k.workspaceId === currentWorkspaceId),
+    // Stores — workspace-scoped. Every "user KB" is a Store; an un-indexed
+    // Store is just a doc bag waiting to be either chatted-with directly or
+    // promoted to a KB via the Configure wizard.
+    stores: stores.filter((k) => !k.workspaceId || k.workspaceId === currentWorkspaceId),
+    indexedStores: stores.filter((k) =>
+      (!k.workspaceId || k.workspaceId === currentWorkspaceId) && k.indexed !== false),
+    rawStores: stores.filter((k) =>
+      (!k.workspaceId || k.workspaceId === currentWorkspaceId) && k.indexed === false),
+
+    // Save-as-Store: lightweight, no ingestion config. Used by the sidebar
+    // multi-select footer.
+    createStore: ({ name, docIds, description }) => {
+      const id = `u-${Date.now().toString(36)}`;
+      const next = {
+        id, workspaceId: currentWorkspaceId,
+        name: (name || "").trim() || `store-${new Date().toISOString().slice(0, 10)}`,
+        description: description || "",
+        docIds: [...(docIds || [])],
+        indexed: false,
+        createdAt: new Date().toISOString(),
+      };
+      setStores((list) => [...list, next]);
+      return next;
+    },
+    // Promote an un-indexed Store to a KB by attaching an ingestion config.
+    indexStore: (id, config) =>
+      setStores((list) => list.map((k) =>
+        k.id === id
+          ? { ...k, ...config, indexed: true, kbType: config.kbType || "vector", updatedAt: new Date().toISOString() }
+          : k)),
+
+    // Back-compat aliases so existing consumers (Sidebar, ConfigureKBWizard,
+    // KnowledgeBaseView, AgentStudioScreen, ConfigureKBDrawer, App) keep
+    // working. `userKBs` here returns ALL stores so the sidebar can render
+    // both indexed (KB) and un-indexed (STORE) in one section.
+    userKBs: stores.filter((k) => !k.workspaceId || k.workspaceId === currentWorkspaceId),
     createUserKB: (kb) => {
       const id = `u-${Date.now().toString(36)}`;
-      const next = { id, workspaceId: currentWorkspaceId, createdAt: new Date().toISOString(), ...kb };
-      setUserKBs((list) => [...list, next]);
+      const next = {
+        id, workspaceId: currentWorkspaceId, createdAt: new Date().toISOString(),
+        indexed: true, kbType: "vector",
+        ...kb,
+      };
+      setStores((list) => [...list, next]);
       return next;
     },
     updateUserKB: (id, partial) =>
-      setUserKBs((list) => list.map((k) => (k.id === id ? { ...k, ...partial, updatedAt: new Date().toISOString() } : k))),
-    deleteUserKB: (id) => setUserKBs((list) => list.filter((k) => k.id !== id)),
-    getUserKB: (id) => userKBs.find((k) => k.id === id) || null,
+      setStores((list) => list.map((k) => (k.id === id ? { ...k, ...partial, updatedAt: new Date().toISOString() } : k))),
+    deleteUserKB: (id) => setStores((list) => list.filter((k) => k.id !== id)),
+    getUserKB: (id) => stores.find((k) => k.id === id) || null,
+    getStore: (id) => stores.find((k) => k.id === id) || null,
+
+    // Query configs — workspace-scoped. Session configs older than 30d are
+    // filtered out at read time so we don't need a background sweeper.
+    queryConfigs: (() => {
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      return queryConfigs.filter((c) =>
+        (!c.workspaceId || c.workspaceId === currentWorkspaceId) &&
+        (c.kind === "saved" || new Date(c.createdAt).getTime() >= cutoff));
+    })(),
+    createQueryConfig: ({ kind = "session", name, kbIds = [], mode = "auto", retrievalParams = {}, llmProvider = "xai" }) => {
+      const id = `qc-${Date.now().toString(36)}`;
+      const now = new Date().toISOString();
+      const next = {
+        id, workspaceId: currentWorkspaceId, kind,
+        name: name || (kind === "saved" ? "Untitled config" : `Session · ${new Date().toLocaleString()}`),
+        kbIds: [...kbIds], mode, retrievalParams: { ...retrievalParams }, llmProvider,
+        createdAt: now, updatedAt: now, lastUsedAt: now,
+      };
+      setQueryConfigs((list) => [...list, next]);
+      return next;
+    },
+    updateQueryConfig: (id, partial) =>
+      setQueryConfigs((list) => list.map((c) =>
+        c.id === id ? { ...c, ...partial, updatedAt: new Date().toISOString() } : c)),
+    touchQueryConfig: (id) =>
+      setQueryConfigs((list) => list.map((c) =>
+        c.id === id ? { ...c, lastUsedAt: new Date().toISOString() } : c)),
+    promoteToSaved: (id, name) =>
+      setQueryConfigs((list) => list.map((c) =>
+        c.id === id ? { ...c, kind: "saved", name: name || c.name, updatedAt: new Date().toISOString() } : c)),
+    deleteQueryConfig: (id) =>
+      setQueryConfigs((list) => list.filter((c) => c.id !== id)),
+    getQueryConfig: (id) => queryConfigs.find((c) => c.id === id) || null,
+
+    // Auto-detect a sensible retrieval config from a KB's own ingestion
+    // settings. Used by the chat surface when "Auto" is selected.
+    autoConfigForKB: (kb) => {
+      if (!kb || kb.indexed === false) {
+        // Un-indexed Store — there's no retrieval; auto means "send raw docs".
+        return { mode: "auto", retrievalParams: { topK: 0 }, llmProvider: "xai", kbType: "none" };
+      }
+      if (kb.kbType === "graph") {
+        return {
+          mode: "auto", llmProvider: "xai", kbType: "graph",
+          retrievalParams: { topK: 10, traversalDepth: 2, edgeTypes: "all" },
+        };
+      }
+      return {
+        mode: "auto", llmProvider: "xai", kbType: "vector",
+        retrievalParams: {
+          topK: kb.retrievalParams?.topK ?? 10,
+          rerankTopN: kb.retrievalParams?.rerankTopN ?? 5,
+          reranker: kb.retrievalParams?.reranker ?? "cohere-rerank-v3",
+          hybridAlpha: kb.retrievalParams?.hybridAlpha ?? 0.5,
+          scoreThreshold: kb.retrievalParams?.scoreThreshold ?? 0.0,
+          mmr: kb.retrievalParams?.mmr ?? false,
+          mmrLambda: kb.retrievalParams?.mmrLambda ?? 0.5,
+          metadataFilters: kb.retrievalParams?.metadataFilters ?? "",
+        },
+      };
+    },
 
     // Workspaces
     workspaces,
@@ -309,7 +415,8 @@ export function WorkspaceProvider({ children }) {
       const remaining = workspaces.filter((w) => w.id !== id);
       if (remaining.length === 0) return; // always keep at least one
       setWorkspaces(remaining);
-      setUserKBs((l) => l.filter((k) => k.workspaceId !== id));
+      setStores((l) => l.filter((k) => k.workspaceId !== id));
+      setQueryConfigs((l) => l.filter((c) => c.workspaceId !== id));
       if (currentWorkspaceId === id) {
         setCurrentWorkspaceId(remaining[0].id);
         setSelection({ kind: "empty" });
@@ -321,7 +428,7 @@ export function WorkspaceProvider({ children }) {
     toggleDocSelected: (id) =>
       setSelectedDocIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id])),
     clearDocSelection: () => setSelectedDocIds([]),
-  }), [view, selection, connectOpen, configureOpen, configureEditId, configureCloneSource, browseOpen, pipelines, fileBlobs, userKBs, selectedDocIds, extractionFile, extractionFileMeta, extractionReturnView, agentKnowledgeIds, workspaces, currentWorkspaceId, accessRequests]);
+  }), [view, selection, connectOpen, configureOpen, configureEditId, configureCloneSource, browseOpen, pipelines, fileBlobs, stores, queryConfigs, selectedDocIds, extractionFile, extractionFileMeta, extractionReturnView, agentKnowledgeIds, workspaces, currentWorkspaceId, accessRequests]);
 
   return <WorkspaceContext.Provider value={api}>{children}</WorkspaceContext.Provider>;
 }

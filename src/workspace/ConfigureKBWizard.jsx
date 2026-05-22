@@ -231,7 +231,10 @@ export default function ConfigureKBWizard({ onClose }) {
     if (!cfg.name.trim()) return;
     setCreating(true);
     await new Promise((r) => setTimeout(r, 900));
-    const payload = { ...cfg };
+    // Editing an un-indexed Store → flip indexed:true so it becomes a KB.
+    // Editing an already-indexed KB → keep indexed:true (reconfigure).
+    // Creating new → defaults to indexed:true in createUserKB.
+    const payload = { ...cfg, indexed: true, kbType: cfg.kbType || "vector" };
     if (editing) {
       updateUserKB(configureEditId, payload);
     } else {
@@ -261,14 +264,18 @@ export default function ConfigureKBWizard({ onClose }) {
           <div style={{ flex: 1 }}>
             <div style={{ color: t.textStrong, fontSize: 14, fontWeight: 800 }}>
               {editing
-                ? `Reconfigure "${existing?.name || cfg.name}"`
+                ? (existing && existing.indexed === false
+                    ? `Index Store — "${existing.name || cfg.name}"`
+                    : `Reconfigure "${existing?.name || cfg.name}"`)
                 : cloning
                   ? `Configure from template — ${configureCloneSource.name}`
                   : "Configure a new knowledge base"}
             </div>
             <div style={{ color: t.textMuted, fontSize: 11 }}>
               {editing
-                ? "Updates will re-index affected documents."
+                ? (existing && existing.indexed === false
+                    ? "Promote this Store to a queryable KB by attaching an ingestion + retrieval config."
+                    : "Updates will re-index affected documents.")
                 : cloning
                   ? "Settings seeded from the catalog. Pick your documents, adjust, and deploy as a new KB."
                   : "Ingest → chunk → embed → index → retrieve."}

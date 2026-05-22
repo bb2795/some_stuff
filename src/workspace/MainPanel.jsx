@@ -3,6 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useWorkspace, KB_CATALOG } from "../context/WorkspaceContext";
 import DocumentView from "./DocumentView";
 import KnowledgeBaseView from "./KnowledgeBaseView";
+import StoreView from "./StoreView";
 
 const MONO = "'IBM Plex Mono', monospace";
 
@@ -13,7 +14,11 @@ export default function MainPanel({ files, onUpload, onRefresh, selection }) {
     <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", background: t.pageBg }}>
       {selection.kind === "empty"  && <EmptyState files={files} onUpload={onUpload} />}
       {selection.kind === "doc"    && <DocumentView file={selection.file} onRefresh={onRefresh} />}
-      {selection.kind === "kb"     && <KnowledgeBaseView kb={selection.kb} />}
+      {selection.kind === "kb" && (
+        selection.kb?.indexed === false
+          ? <StoreView store={selection.kb} />
+          : <KnowledgeBaseView kb={selection.kb} />
+      )}
       {selection.kind === "source" && <SourceView source={selection.source} />}
     </div>
   );

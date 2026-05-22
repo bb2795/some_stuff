@@ -35,10 +35,13 @@ function Section({ title, count, action, children, t, open = true, onToggle }) {
 
 // ─── Row components ───────────────────────────────────────────────────────
 
-function KBRow({ kb, active, expanded, memberDocs, getDocStatus, onClick, onToggleExpand, onOpenDoc, activeDocId, t }) {
+function KBRow({ kb, active, expanded, memberDocs, getDocStatus, onClick, onToggleExpand, onOpenDoc, onIndexStore, activeDocId, t }) {
   const [hover, setHover] = useState(false);
-  const color = kb.status === "restricted" ? "#B45309" : "#2563EB";
   const isUser = kb.id?.startsWith("u-");
+  const isRawStore = isUser && kb.indexed === false;
+  const color = kb.status === "restricted"
+    ? "#B45309"
+    : isRawStore ? "#EA580C" : "#2563EB";
   const canExpand = isUser && (kb.docIds?.length || 0) > 0;
 
   return (
@@ -62,16 +65,34 @@ function KBRow({ kb, active, expanded, memberDocs, getDocStatus, onClick, onTogg
           }}>
           {canExpand ? (expanded ? "▾" : "▸") : ""}
         </button>
-        <span style={{ fontSize: 12, color, flexShrink: 0 }}>🗂</span>
+        <span style={{ fontSize: 12, color, flexShrink: 0 }}>{isRawStore ? "📁" : "🗂"}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ color: active ? t.textStrong : t.text, fontSize: 12, fontWeight: active ? 600 : 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {kb.name}
           </div>
           <div style={{ color: t.textDisabled, fontSize: 9, fontFamily: MONO, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {isUser ? `${kb.docIds?.length || 0} docs · ${kb.chunk}` : `owner ${kb.owner} · ${kb.records}`}
+            {isRawStore
+              ? `${kb.docIds?.length || 0} docs · raw context`
+              : isUser
+                ? `${kb.docIds?.length || 0} docs · ${kb.chunk}`
+                : `owner ${kb.owner} · ${kb.records}`}
           </div>
         </div>
-        {isUser && (
+        {isRawStore && hover && onIndexStore && (
+          <button onClick={(e) => { e.stopPropagation(); onIndexStore(kb); }}
+            title="Promote this Store to a KB"
+            style={{
+              background: "#16A34A", border: "none", borderRadius: 3,
+              padding: "1px 6px", color: "#fff", fontSize: 8, fontWeight: 700,
+              cursor: "pointer", flexShrink: 0, letterSpacing: 0.3,
+            }}>+ INDEX</button>
+        )}
+        {isRawStore && (!hover || !onIndexStore) && (
+          <span style={{ background: "#EA580C20", color: "#EA580C", fontSize: 8, fontWeight: 700, padding: "1px 5px", borderRadius: 2, flexShrink: 0 }}>
+            STORE
+          </span>
+        )}
+        {isUser && !isRawStore && (
           <IndexingBadge memberDocs={memberDocs} getDocStatus={getDocStatus} t={t} />
         )}
         {!isUser && kb.status === "restricted" && (
@@ -255,7 +276,7 @@ export default function Sidebar({ files, filesLoading, filesError, onRefresh, on
     selection, openDoc, openKB, openSource, openExtraction, openBrowse,
     getDocStatus, getFileBlob, setFileBlob,
     userKBs, selectedDocIds, toggleDocSelected, clearDocSelection,
-    openConfigureNew,
+    openConfigureNew, openReconfigure, createStore,
   } = useWorkspace();
 
   const [kbTab, setKbTab] = useState("mine");
@@ -321,8 +342,8 @@ export default function Sidebar({ files, filesLoading, filesError, onRefresh, on
 
       {/* Sections */}
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: 10 }}>
-        {/* Knowledge Bases — with Mine / Browse sub-tabs */}
-        <Section title="Knowledge Bases" count={allKBs.length} t={t}
+        {/* Stores (user KBs + raw doc-bags) — with Mine / Browse sub-tabs */}
+        <Section title="Stores & KBs" count={allKBs.length} t={t}
           open={open.kb} onToggle={() => setOpen((o) => ({ ...o, kb: !o.kb }))}>
           <div style={{ padding: "2px 10px 8px", display: "flex", gap: 4 }}>
             <KBSubTab active={kbTab === "mine"} onClick={() => setKbTab("mine")} label="Mine" t={t} />
@@ -351,12 +372,13 @@ export default function Sidebar({ files, filesLoading, filesError, onRefresh, on
                 }}
                 onToggleExpand={() => setExpandedKBs((e) => ({ ...e, [kb.id]: !e[kb.id] }))}
                 onOpenDoc={openDoc}
+                onIndexStore={(store) => openReconfigure(store.id)}
                 t={t} />
             );
           })}
           {kbTab === "mine" && allKBs.length === 0 && (
             <div style={{ color: t.textDisabled, fontSize: 11, padding: "6px 14px", lineHeight: 1.4 }}>
-              No KBs yet. Select docs and click <strong>Configure KB</strong> below.
+              No Stores yet. Select docs and click <strong>Save as Store</strong> or <strong>Configure KB</strong> below.
             </div>
           )}
           {kbTab === "browse" && (
@@ -426,15 +448,31 @@ export default function Sidebar({ files, filesLoading, filesError, onRefresh, on
         </Section>
       </div>
 
-      {/* ── Bottom strip: contextual shortcut when docs are selected ── */}
+      {/* ── Bottom strip: contextual actions when docs are selected ── */}
       {selectedDocIds.length > 0 && (
         <div style={{ borderTop: `1px solid ${t.border}`, padding: 10, background: t.sidebarBg, flexShrink: 0 }}>
-          <button onClick={openConfigureNew}
+          <div style={{ color: t.textGhost, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
+            {selectedDocIds.length} doc{selectedDocIds.length === 1 ? "" : "s"} selected
+          </div>
+          <button onClick={() => {
+              const name = prompt("Name this Store:", `store-${new Date().toISOString().slice(0, 10)}`);
+              if (!name) return;
+              const store = createStore({ name, docIds: [...selectedDocIds] });
+              clearDocSelection();
+              openKB(store);
+            }}
             style={{
-              width: "100%", background: "#16A34A", color: "#fff", border: "none",
+              width: "100%", background: "#EA580C", color: "#fff", border: "none",
               borderRadius: 6, padding: "8px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer",
             }}>
-            ⚙ Configure KB from {selectedDocIds.length} selected
+            📁 Save as Store
+          </button>
+          <button onClick={openConfigureNew}
+            style={{
+              width: "100%", marginTop: 5, background: "#16A34A", color: "#fff", border: "none",
+              borderRadius: 6, padding: "8px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer",
+            }}>
+            ⚙ Configure KB (index now)
           </button>
           <button onClick={clearDocSelection}
             style={{

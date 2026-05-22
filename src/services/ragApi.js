@@ -67,3 +67,67 @@ export async function queryFile(user, fileId, question, provider = "xai") {
   }
   return res.json(); // { answer, model }
 }
+
+// Multi-doc Store query — chat with a collection of un-indexed docs by
+// fan-out over /v1/qa and merging answers. v1 implementation; a real
+// /v1/qa/multi endpoint that concatenates parsed chunks server-side would
+// be cleaner, but this keeps the backend untouched.
+export async function queryStore(user, fileIds, question, provider = "xai") {
+  if (!fileIds || fileIds.length === 0) throw new Error("No documents selected");
+  const results = await Promise.all(
+    fileIds.map((id) =>
+      queryFile(user, Number(id), question, provider)
+        .then((r) => ({ ok: true, fileId: id, ...r }))
+        .catch((e) => ({ ok: false, fileId: id, error: e.message }))),
+  );
+  const ok = results.filter((r) => r.ok);
+  const failed = results.filter((r) => !r.ok);
+  if (ok.length === 0) {
+    throw new Error(`All ${failed.length} document queries failed: ${failed[0]?.error || ""}`);
+  }
+  const merged = ok
+    .map((r) => `--- Document ${r.fileId} (${r.model}) ---\n${r.answer}`)
+    .join("\n\n");
+  return {
+    answer: merged,
+    model: ok[0].model,
+    perDoc: results,
+  };
+}
+
+// LLM-based router for multi-KB chat — given a question and a list of KBs,
+// returns the subset of KB ids that the question should be answered from.
+// Falls back to all KB ids if the router LLM call or JSON parsing fails.
+export async function routeQuestion(user, question, kbList, provider = "xai") {
+  if (!kbList || kbList.length === 0) return { kbIds: [], fallback: false };
+  if (kbList.length === 1) return { kbIds: [kbList[0].id], fallback: false };
+
+  // We piggy-back on /v1/qa by routing through the first KB's first member
+  // doc — the route prompt asks the model to return strict JSON. If no
+  // routing doc is available, we just return all KBs (fallback).
+  const routingDocId = kbList[0]?.docIds?.[0];
+  if (!routingDocId) return { kbIds: kbList.map((k) => k.id), fallback: true };
+
+  const summary = kbList
+    .map((k) => `- id: "${k.id}" · name: "${k.name}"${k.description ? ` · ${k.description}` : ""}`)
+    .join("\n");
+  const routerPrompt =
+    `You are a router. Pick which knowledge bases below are relevant to the user's question. ` +
+    `Reply with strict JSON ONLY: {"kb_ids": ["id1", "id2"]}. No prose, no markdown.\n\n` +
+    `KNOWLEDGE BASES:\n${summary}\n\n` +
+    `USER QUESTION: ${question}`;
+
+  try {
+    const res = await queryFile(user, Number(routingDocId), routerPrompt, provider);
+    const text = res.answer || "";
+    const match = text.match(/\{[\s\S]*?"kb_ids"[\s\S]*?\}/);
+    if (!match) throw new Error("router returned no JSON");
+    const parsed = JSON.parse(match[0]);
+    const valid = kbList.map((k) => k.id);
+    const picked = (parsed.kb_ids || []).filter((id) => valid.includes(id));
+    if (picked.length === 0) throw new Error("router returned empty set");
+    return { kbIds: picked, fallback: false };
+  } catch (_e) {
+    return { kbIds: kbList.map((k) => k.id), fallback: true };
+  }
+}
