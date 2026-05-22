@@ -19,8 +19,8 @@ export default function KnowledgeBaseView({ kb }) {
   const { user } = useAuth();
   const { t } = useTheme();
   const {
-    openObsidian, deleteUserKB, openDoc, openExtraction,
-    getDocStatus, getFileBlob, openReconfigure, openCloneFromKB,
+    openObsidian, deleteUserKB, openDoc,
+    getDocStatus, openReconfigure, openCloneFromKB,
     indexedStores, queryConfigs, autoConfigForKB,
     createQueryConfig, updateQueryConfig, touchQueryConfig,
     promoteToSaved, deleteQueryConfig,
@@ -262,7 +262,6 @@ export default function KnowledgeBaseView({ kb }) {
               <DocumentsList
                 memberDocs={memberDocs}
                 onOpenDoc={openDoc}
-                onOpenExtraction={(f) => openExtraction(getFileBlob(f.file_id ?? f.id), f)}
                 t={t} />
             </>
           )}
